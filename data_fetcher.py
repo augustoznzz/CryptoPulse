@@ -110,16 +110,13 @@ class DataFetcher:
             
             # Convert timeframe for Coinbase compatibility
             timeframe_map = {
-                '1h': '3600',
-                '4h': '14400', 
-                '1d': '86400'
+                '1h': '1h',
+                '4h': '4h', 
+                '1d': '1d'
             }
             
-            # Use mapped timeframe for Coinbase, original for others
-            if 'coinbase' in self.exchange.name.lower():
-                tf = timeframe_map.get(timeframe, timeframe)
-            else:
-                tf = timeframe
+            # For Coinbase Advanced, use standard timeframes but handle granularity differently
+            tf = timeframe
             
             # Fetch OHLCV data
             ohlcv = self.exchange.fetch_ohlcv(
