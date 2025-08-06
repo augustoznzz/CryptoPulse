@@ -7,12 +7,12 @@ Simple Flask web interface for crypto trading analysis
 from flask import Flask, render_template, jsonify, request
 import threading
 import time
-from crypto_analyzer import CryptoAnalyzer
+from enhanced_analyzer import EnhancedCryptoAnalyzer
 
 app = Flask(__name__)
 
-# Lista das principais criptomoedas para análise
-CRYPTO_LIST = ['BTC', 'ETH', 'ADA', 'XRP', 'DOT', 'LINK', 'SOL', 'MATIC', 'AVAX', 'UNI']
+# Initialize the enhanced analyzer
+enhanced_analyzer = EnhancedCryptoAnalyzer(verbose=True)
 
 @app.route('/')
 def index():
@@ -21,73 +21,58 @@ def index():
 
 @app.route('/api/search-trades', methods=['POST'])
 def search_trades():
-    """API endpoint para buscar as melhores oportunidades de trading"""
+    """API endpoint para buscar as melhores oportunidades de trading do mercado completo"""
     try:
-        # Analisar múltiplas criptomoedas para encontrar as melhores oportunidades
-        results = []
+        print("🔍 Iniciando análise completa do mercado de criptomoedas...")
         
-        for crypto in CRYPTO_LIST:
-            try:
-                # Usar modo demo para garantir que sempre funciona
-                analyzer = CryptoAnalyzer(
-                    symbol=crypto,
-                    exchange='coinbase',
-                    verbose=False,
-                    demo_mode=True  # Garantir funcionamento mesmo com problemas de API
-                )
-                
-                signal = analyzer.analyze()
-                
-                if signal:
-                    # Extrair dados do sinal para análise
-                    signal_lines = signal.strip().split('\n')
-                    signal_type = 'LONG' if '🔼 LONG' in signal_lines[0] else 'SHORT'
-                    
-                    # Extrair preços
-                    entry_line = next((line for line in signal_lines if 'Entry:' in line), '')
-                    entry_price = float(entry_line.split(':')[1].strip()) if entry_line else 0
-                    
-                    tp1_line = next((line for line in signal_lines if 'TP1:' in line), '')
-                    tp1_price = float(tp1_line.split(':')[1].strip()) if tp1_line else 0
-                    
-                    # Calcular potencial de ganho
-                    if entry_price > 0 and tp1_price > 0:
-                        if signal_type == 'LONG':
-                            potential_gain = ((tp1_price - entry_price) / entry_price) * 100
-                        else:
-                            potential_gain = ((entry_price - tp1_price) / entry_price) * 100
-                    else:
-                        potential_gain = 0
-                    
-                    results.append({
-                        'symbol': crypto,
-                        'signal': signal,
-                        'type': signal_type,
-                        'potential_gain': round(potential_gain, 2),
-                        'entry_price': entry_price
+        # Use o analisador aprimorado para buscar oportunidades reais
+        result = enhanced_analyzer.find_best_opportunities(max_coins=75, top_results=8)
+        
+        if result.get('success'):
+            opportunities = result.get('opportunities', [])
+            formatted_results = []
+            
+            print(f"✅ Análise concluída: {len(opportunities)} oportunidades encontradas")
+            
+            for signal in opportunities:
+                formatted_signal = enhanced_analyzer.format_signal_for_display(signal)
+                if formatted_signal:
+                    formatted_results.append({
+                        'symbol': formatted_signal['symbol'],
+                        'signal': formatted_signal['signal'],
+                        'type': formatted_signal['type'],
+                        'potential_gain': formatted_signal['potential_gain'],
+                        'entry_price': formatted_signal['entry_price'],
+                        'coin_name': formatted_signal['coin_name'],
+                        'momentum_score': formatted_signal['momentum_score'],
+                        'market_cap_rank': formatted_signal['market_cap_rank']
                     })
-                    
-            except Exception as e:
-                print(f"Erro ao analisar {crypto}: {str(e)}")
-                continue
-        
-        # Ordenar por potencial de ganho (maiores primeiro)
-        results.sort(key=lambda x: x['potential_gain'], reverse=True)
-        
-        # Retornar apenas os 3 melhores
-        top_results = results[:3]
-        
-        return jsonify({
-            'success': True,
-            'results': top_results,
-            'total_analyzed': len(CRYPTO_LIST),
-            'timestamp': time.strftime('%Y-%m-%d %H:%M:%S')
-        })
-        
+            
+            # Retorna as melhores oportunidades (já ordenadas por score)
+            top_results = formatted_results[:5]  # Top 5 oportunidades
+            
+            return jsonify({
+                'success': True,
+                'results': top_results,
+                'total_analyzed': result.get('total_analyzed', 0),
+                'total_opportunities': result.get('total_opportunities', 0),
+                'analysis_time': result.get('analysis_time', 0),
+                'timestamp': result.get('timestamp', time.strftime('%Y-%m-%d %H:%M:%S'))
+            })
+            
+        else:
+            error_msg = result.get('error', 'Erro desconhecido durante análise')
+            print(f"❌ Erro na análise: {error_msg}")
+            return jsonify({
+                'success': False,
+                'error': f'Erro na análise: {error_msg}'
+            }), 500
+            
     except Exception as e:
+        print(f"❌ Erro durante análise: {str(e)}")
         return jsonify({
             'success': False,
-            'error': f'Erro na análise: {str(e)}'
+            'error': f'Erro interno: {str(e)}'
         }), 500
 
 if __name__ == '__main__':
