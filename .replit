@@ -1,0 +1,85 @@
+modules = ["python-3.11"]
+
+[nix]
+channel = "stable-25_05"
+packages = ["glibcLocales", "libxcrypt", "pkg-config", "xsimd"]
+
+[workflows]
+runButton = "Project"
+
+[[workflows.workflow]]
+name = "Project"
+mode = "parallel"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Crypto Analyzer"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "crypto_analyzer_test"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Demo Test"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "ETH Demo Test"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Real BTC Test"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "ADA Demo Test"
+
+[[workflows.workflow]]
+name = "Crypto Analyzer"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pip install ccxt pandas numpy scipy scikit-learn && python main.py --moeda BTC --verbose"
+
+[[workflows.workflow]]
+name = "crypto_analyzer_test"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "pip install ccxt pandas numpy scipy scikit-learn && python main.py --moeda BTC --verbose"
+
+[[workflows.workflow]]
+name = "Demo Test"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python main.py --moeda BTC --demo --verbose"
+
+[[workflows.workflow]]
+name = "ETH Demo Test"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python main.py --moeda ETH --demo"
+
+[[workflows.workflow]]
+name = "Real BTC Test"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python main.py --moeda BTC --verbose"
+
+[[workflows.workflow]]
+name = "ADA Demo Test"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "python main.py --moeda ADA --demo"
