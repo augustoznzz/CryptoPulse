@@ -1,0 +1,11 @@
+{
+  "name": "crypto-pulse",
+  "version": "1.0.0",
+  "description": "Configuration file to deploy CryptoPulse on hosting platforms like Netlify",
+  "scripts": {
+    "start": "python start_server.py",
+    "build": "echo Build step not required for Python app",
+    "test": "pytest"
+  }
+}
+
