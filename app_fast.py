@@ -127,8 +127,9 @@ def test_api():
         'timestamp': time.strftime('%Y-%m-%d %H:%M:%S')
     })
 
-@app.route('/api/search-trades', methods=['POST'])
+@app.route('/api/search-trades', methods=['GET', 'POST'], strict_slashes=False)
 def search_trades():
+    """Endpoint que executa a busca por oportunidades de trade."""
     print("🔍 [API] Iniciando busca de oportunidades...")
     try:
         print("🔍 Executando análise completa das top 30 criptomoedas...")
