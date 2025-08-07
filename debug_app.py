@@ -19,18 +19,20 @@ def test_api_directly():
         
         # Teste 2: Testar a API de busca
         print("\n2. Testando API de busca...")
-        response = requests.post(
+        response = requests.get(
             'http://localhost:5000/api/search-trades',
             headers={'Content-Type': 'application/json'},
             timeout=30
         )
-        
+
         print(f"   Status: {response.status_code}")
         print(f"   Headers: {dict(response.headers)}")
-        
+
         if response.status_code == 200:
             data = response.json()
             print(f"   Resposta: {json.dumps(data, indent=2)}")
+        elif response.status_code == 404:
+            print("   Erro: endpoint /api/search-trades não encontrado")
         else:
             print(f"   Erro: {response.text}")
             

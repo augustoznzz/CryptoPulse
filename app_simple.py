@@ -14,8 +14,9 @@ def index():
     """Página principal da interface"""
     return render_template('index.html')
 
-@app.route('/api/search-trades', methods=['POST'])
+@app.route('/api/search-trades', methods=['GET', 'POST'], strict_slashes=False)
 def search_trades():
+    """Simula a busca por oportunidades de trade."""
     print("🔍 [API] Iniciando busca de oportunidades...")
     try:
         # Simular análise rápida para teste
