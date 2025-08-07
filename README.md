@@ -10,6 +10,11 @@ Um software completo de análise técnica de criptomoedas que gera sinais de tra
 - **Suporte a Múltiplas Exchanges**: Coinbase, Kraken, Binance, Bitfinex com fallback automático
 - **Modo Demo**: Funciona mesmo quando exchanges não estão disponíveis
 - **Sinais Precisos**: Gera recomendações LONG/SHORT com leverages calculadas
+- **Análise das Top 30**: Analisa automaticamente as 30 criptomoedas com maior market cap
+- **Exclusão de Stablecoins**: Filtra automaticamente stablecoins (USDT, USDC, etc.) das oportunidades
+- **Análise Completa a Cada Clique**: Executa análise completa das top 30 criptomoedas a cada requisição
+- **Indicadores Avançados**: Inclui tendência de volume e retração de Fibonacci
+- **Interface Web**: Interface web para visualização de oportunidades
 
 ## 📦 Instalação
 
@@ -21,11 +26,16 @@ pip install ccxt pandas numpy scipy scikit-learn
 
 ## 🛠 Como Usar
 
-### Análise em Tempo Real
+### Análise de Criptomoeda Individual
 ```bash
 python main.py --moeda BTC
 python main.py --moeda ETH
 python main.py --moeda ADA
+```
+
+### Análise das Top 30 Criptomoedas por Market Cap
+```bash
+python main.py --top30
 ```
 
 ### Modo Demo (para testes)
@@ -36,6 +46,7 @@ python main.py --moeda BTC --demo
 ### Modo Verbose (com logs detalhados)
 ```bash
 python main.py --moeda BTC --verbose
+python main.py --top30 --verbose
 ```
 
 ### Especificar Exchange
@@ -77,8 +88,10 @@ BTC/USDT 🔼 LONG
 
 ### Análise Matemática
 - **Regressão Linear**: Previsão de tendências futuras
-- **Fibonacci**: Cálculo de alvos de lucro
+- **Fibonacci**: Cálculo de alvos de lucro e retração
 - **Suporte/Resistência**: Identificação automática de níveis
+- **Tendência de Volume**: Análise de força e direção do volume
+- **Retração de Fibonacci**: Identificação de níveis de suporte/resistência baseados em Fibonacci
 
 ## 🎯 Cálculo de Alvos
 
@@ -97,6 +110,58 @@ BTC/USDT 🔼 LONG
 - **Volatilidade < 10%**: Leverage 3x
 - **Volatilidade < 20%**: Leverage 2x
 - **Volatilidade > 20%**: Leverage 1x
+
+## 🌐 Interface Web
+
+### 🚀 Inicialização Fácil (Recomendado)
+```bash
+python start_server.py
+```
+Script interativo que permite escolher a versão da aplicação.
+
+### Versões Disponíveis
+
+#### 1. Versão Rápida (Recomendada)
+```bash
+python app_fast.py
+```
+- Cache ativo para resposta rápida
+- Dados baseados em análise real
+- Resposta em segundos
+
+#### 2. Versão Completa (Análise em Tempo Real)
+```bash
+python app.py
+```
+- Análise em tempo real das top 50 criptomoedas
+- ⚠️ **Nota**: Pode demorar alguns minutos para a primeira análise
+
+#### 3. Versão de Teste (Dados Simulados)
+```bash
+python app_simple.py
+```
+- Dados simulados para teste rápido
+- Resposta instantânea
+
+## 🚫 Exclusão de Stablecoins
+
+O sistema automaticamente filtra stablecoins das oportunidades de trading, incluindo:
+
+- **USDT** (Tether)
+- **USDC** (USD Coin)
+- **BUSD** (Binance USD)
+- **DAI** (Dai)
+- **TUSD** (TrueUSD)
+- **USDP** (Pax Dollar)
+- **USDD** (Decentralized USD)
+- **FRAX** (Frax)
+- **STETH** (Lido Staked Ether)
+- **WSTETH** (Wrapped Staked Ether)
+- **WEETH** (Wrapped EETH)
+- **WBETH** (Wrapped Beacon ETH)
+- **BSC-USD** (Binance Smart Chain USD)
+
+Stablecoins são mantidas apenas para projeção de mercado e não são incluídas nas oportunidades de trading.
 
 ## 🔄 Sistema de Fallback
 

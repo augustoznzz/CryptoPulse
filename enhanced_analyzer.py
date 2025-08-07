@@ -106,23 +106,24 @@ class EnhancedCryptoAnalyzer:
             self.log(f"Error analyzing {coin_data.get('symbol', 'Unknown')}: {str(e)}")
             return None
     
-    def find_best_opportunities(self, max_coins=50, top_results=10):
+    def find_best_opportunities(self, max_coins=30, top_results=5):
         """
-        Find the best trading opportunities from the market
+        Find the best trading opportunities from the top 30 cryptocurrencies by market cap
+        (excluding stablecoins)
         
         Args:
-            max_coins (int): Maximum number of coins to analyze
-            top_results (int): Number of top results to return
+            max_coins (int): Maximum number of coins to analyze (default: 30)
+            top_results (int): Number of top results to return (default: 5)
             
         Returns:
             dict: Analysis results with best opportunities
         """
         try:
-            self.log(f"Starting comprehensive market analysis (max {max_coins} coins)")
+            self.log(f"Starting comprehensive market analysis of top {max_coins} cryptocurrencies by market cap (excluding stablecoins)")
             start_time = time.time()
             
-            # Get top cryptocurrencies from market
-            top_coins = self.market_fetcher.get_top_cryptocurrencies(limit=max_coins * 2)
+            # Get top 30 cryptocurrencies from market
+            top_coins = self.market_fetcher.get_top_cryptocurrencies(limit=max_coins)
             
             if not top_coins:
                 return {'success': False, 'error': 'Failed to fetch market data'}

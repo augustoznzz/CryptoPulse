@@ -26,12 +26,12 @@ class MarketDataFetcher:
         if self.verbose:
             print(f"[MARKET] {message}")
     
-    def get_top_cryptocurrencies(self, limit=100):
+    def get_top_cryptocurrencies(self, limit=50):
         """
-        Get top cryptocurrencies by market cap
+        Get top 50 cryptocurrencies by market cap
         
         Args:
-            limit (int): Number of top cryptocurrencies to fetch
+            limit (int): Number of top cryptocurrencies to fetch (default: 50)
             
         Returns:
             list: List of cryptocurrency data
@@ -100,7 +100,7 @@ class MarketDataFetcher:
             self.log(f"Fetching {days} days of historical data for {coin_id}")
             
             # Get historical market data
-            data = self.cg.get_coin_market_chart(
+            data = self.cg.get_coin_market_chart_by_id(
                 id=coin_id,
                 vs_currency='usd',
                 days=days
@@ -180,17 +180,31 @@ class MarketDataFetcher:
     
     def filter_by_technical_criteria(self, coins_data):
         """
-        Filter coins based on technical analysis criteria
+        Filter coins based on technical analysis criteria, excluding stablecoins
         
         Args:
             coins_data (list): List of coin market data
             
         Returns:
-            list: Filtered coins with potential
+            list: Filtered coins with potential (excluding stablecoins)
         """
+        # Lista de stablecoins para excluir da análise de oportunidades
+        stablecoins = {
+            'USDT', 'USDC', 'BUSD', 'DAI', 'TUSD', 'USDP', 'USDD', 'FRAX', 
+            'GUSD', 'HUSD', 'USDK', 'USDN', 'USDJ', 'USDK', 'USDN', 'USDJ',
+            'STETH', 'WSTETH', 'WEETH', 'WBETH', 'BSC-USD'
+        }
+        
         filtered = []
         
         for coin in coins_data:
+            symbol = coin.get('symbol', '').upper()
+            
+            # Skip stablecoins
+            if symbol in stablecoins:
+                self.log(f"Skipping stablecoin: {symbol}")
+                continue
+                
             momentum = self.calculate_market_momentum(coin)
             
             # Technical criteria for filtering
@@ -213,7 +227,7 @@ class MarketDataFetcher:
                 criteria_met += 1
             
             # 4. Market cap stability (not too small)
-            if coin.get('market_cap', 0) > 50000000:  # Min $50M market cap
+            if coin.get('market_cap', 0) > 10000000:  # Min $10M market cap
                 criteria_met += 1
             
             # 5. Price above $0.001 (avoid micro-caps)
@@ -229,7 +243,7 @@ class MarketDataFetcher:
         # Sort by momentum score
         filtered.sort(key=lambda x: x['momentum_score'], reverse=True)
         
-        self.log(f"Filtered {len(filtered)} coins from {len(coins_data)} based on technical criteria")
+        self.log(f"Filtered {len(filtered)} coins from {len(coins_data)} based on technical criteria (excluding stablecoins)")
         return filtered
     
     def get_tradeable_pairs(self, symbol):

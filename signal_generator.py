@@ -149,6 +149,29 @@ class SignalGenerator:
             if volume_ratio > 1.5:  # High volume
                 confidence += 1
             
+            # Volume Trend Analysis
+            volume_trend_direction = indicators.get('volume_trend_direction', 0)
+            volume_strength = indicators.get('volume_strength', 1)
+            volume_momentum = indicators.get('volume_momentum', 0)
+            
+            if volume_trend_direction > 0 and volume_strength > 1.2:
+                signals.append('LONG')  # Strong volume trend
+                confidence += 1
+            elif volume_trend_direction < 0 and volume_strength < 0.8:
+                signals.append('SHORT')  # Weak volume trend
+                confidence += 1
+            
+            # Fibonacci Retracement Analysis
+            retracement_pct = indicators.get('retracement_pct', 0)
+            nearest_level = indicators.get('nearest_level', '')
+            
+            if retracement_pct > 61.8 and nearest_level in ['fib_618', 'fib_786']:
+                signals.append('LONG')  # Fibonacci support level
+                confidence += 1
+            elif retracement_pct < 38.2 and nearest_level in ['fib_236', 'fib_382']:
+                signals.append('SHORT')  # Fibonacci resistance level
+                confidence += 1
+            
             # Linear trend analysis
             trend_slope = indicators['linear_trend']['trend_slope']
             if trend_slope > 0:

@@ -54,6 +54,10 @@ class TechnicalIndicators:
             indicators['volume_sma'] = self.sma(df['volume'], 20)
             indicators['volume_ratio'] = df['volume'].iloc[-1] / indicators['volume_sma'].iloc[-1]
             
+            # Volume trend analysis
+            volume_trend = self.calculate_volume_trend(df['volume'])
+            indicators.update(volume_trend)
+            
             # Volatility and standard deviation
             indicators['volatility'] = self.calculate_volatility(df['close'])
             indicators['std_dev'] = df['close'].rolling(20).std().iloc[-1]
@@ -61,6 +65,10 @@ class TechnicalIndicators:
             # Support and resistance levels
             support_resistance = self.find_support_resistance(df)
             indicators.update(support_resistance)
+            
+            # Fibonacci retracement analysis
+            fibonacci_analysis = self.fibonacci_retracement(df)
+            indicators.update(fibonacci_analysis)
             
             # Linear regression for trend prediction
             indicators['linear_trend'] = self.linear_regression_trend(df['close'])
@@ -236,3 +244,114 @@ class TechnicalIndicators:
         }
         
         return levels
+    
+    def calculate_volume_trend(self, volume, period=20):
+        """
+        Calculate volume trend indicators
+        
+        Args:
+            volume (pandas.Series): Volume data
+            period (int): Period for trend calculation
+            
+        Returns:
+            dict: Volume trend indicators
+        """
+        try:
+            # Volume moving averages
+            volume_sma_short = self.sma(volume, period//2)
+            volume_sma_long = self.sma(volume, period)
+            
+            # Volume trend direction
+            volume_trend_direction = 1 if volume_sma_short.iloc[-1] > volume_sma_long.iloc[-1] else -1
+            
+            # Volume momentum (rate of change)
+            volume_momentum = (volume.iloc[-1] - volume.iloc[-period]) / volume.iloc[-period] * 100
+            
+            # Volume strength (current volume vs average)
+            volume_strength = volume.iloc[-1] / volume_sma_long.iloc[-1]
+            
+            # Volume consistency (standard deviation)
+            volume_consistency = volume.rolling(period).std().iloc[-1] / volume_sma_long.iloc[-1]
+            
+            return {
+                'volume_trend_direction': volume_trend_direction,
+                'volume_momentum': volume_momentum,
+                'volume_strength': volume_strength,
+                'volume_consistency': volume_consistency,
+                'volume_sma_short': volume_sma_short.iloc[-1],
+                'volume_sma_long': volume_sma_long.iloc[-1]
+            }
+            
+        except Exception as e:
+            self.log(f"Error calculating volume trend: {str(e)}")
+            return {
+                'volume_trend_direction': 0,
+                'volume_momentum': 0,
+                'volume_strength': 1,
+                'volume_consistency': 0,
+                'volume_sma_short': 0,
+                'volume_sma_long': 0
+            }
+    
+    def fibonacci_retracement(self, df, period=50):
+        """
+        Calculate Fibonacci retracement levels based on recent high/low
+        
+        Args:
+            df (pandas.DataFrame): OHLCV data
+            period (int): Period to look back for high/low
+            
+        Returns:
+            dict: Fibonacci retracement levels and analysis
+        """
+        try:
+            # Get recent high and low
+            recent_high = df['high'].rolling(period).max().iloc[-1]
+            recent_low = df['low'].rolling(period).min().iloc[-1]
+            current_price = df['close'].iloc[-1]
+            
+            # Calculate Fibonacci levels
+            fib_levels = self.fibonacci_levels(recent_high, recent_low)
+            
+            # Determine which Fibonacci level current price is near
+            price_position = None
+            nearest_level = None
+            distance_to_level = float('inf')
+            
+            for level_name, level_value in fib_levels.items():
+                distance = abs(current_price - level_value)
+                if distance < distance_to_level:
+                    distance_to_level = distance
+                    nearest_level = level_name
+                    price_position = level_value
+            
+            # Calculate retracement percentage
+            total_range = recent_high - recent_low
+            if total_range > 0:
+                retracement_pct = ((recent_high - current_price) / total_range) * 100
+            else:
+                retracement_pct = 0
+            
+            return {
+                'fib_levels': fib_levels,
+                'nearest_level': nearest_level,
+                'price_position': price_position,
+                'retracement_pct': retracement_pct,
+                'recent_high': recent_high,
+                'recent_low': recent_low,
+                'current_price': current_price,
+                'total_range': total_range
+            }
+            
+        except Exception as e:
+            self.log(f"Error calculating Fibonacci retracement: {str(e)}")
+            return {
+                'fib_levels': {},
+                'nearest_level': None,
+                'price_position': None,
+                'retracement_pct': 0,
+                'recent_high': 0,
+                'recent_low': 0,
+                'current_price': 0,
+                'total_range': 0
+            }

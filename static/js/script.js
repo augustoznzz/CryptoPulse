@@ -24,14 +24,24 @@ document.addEventListener('DOMContentLoaded', function() {
         resultsSection.style.display = 'none';
         errorSection.style.display = 'none';
 
-        // Make API call
+        // Make API call with longer timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes timeout
+        
         fetch('/api/search-trades', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-            }
+            },
+            signal: controller.signal
         })
-        .then(response => response.json())
+        .then(response => {
+            clearTimeout(timeoutId);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
         .then(data => {
             if (data.success) {
                 displayResults(data);
@@ -40,8 +50,15 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         })
         .catch(error => {
+            clearTimeout(timeoutId);
             console.error('Error:', error);
-            displayError('Erro de conexão. Tente novamente.');
+            if (error.name === 'AbortError') {
+                displayError('Análise demorou muito tempo. Tente novamente.');
+            } else if (error.message.includes('HTTP')) {
+                displayError(`Erro do servidor: ${error.message}`);
+            } else {
+                displayError('Erro de conexão. Tente novamente.');
+            }
         })
         .finally(() => {
             // Re-enable button
