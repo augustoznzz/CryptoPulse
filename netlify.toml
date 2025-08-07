@@ -1,6 +1,2 @@
 [build]
-  command = "npm run build"
-  publish = "."
-
-[build.environment]
-  PYTHON_VERSION = "3.11"
+publish = "templates"
