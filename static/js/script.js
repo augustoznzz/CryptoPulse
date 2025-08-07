@@ -38,7 +38,8 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => {
             clearTimeout(timeoutId);
             if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                const statusText = response.statusText ? `: ${response.statusText}` : '';
+                throw new Error(`HTTP ${response.status}${statusText}`);
             }
             return response.json();
         })
