@@ -72,9 +72,36 @@ class TechnicalIndicators:
             
             # Linear regression for trend prediction
             indicators['linear_trend'] = self.linear_regression_trend(df['close'])
-            
+
             # Price position relative to recent high/low
             indicators['price_position'] = self.calculate_price_position(df)
+
+            # Stochastic Oscillator
+            stoch = self.stochastic_oscillator(df['high'], df['low'], df['close'])
+            indicators.update(stoch)
+
+            # Ichimoku Cloud
+            ichimoku = self.ichimoku_cloud(df['high'], df['low'], df['close'])
+            indicators.update(ichimoku)
+
+            # VWAP
+            indicators['vwap'] = self.vwap(df)
+
+            # On-Balance Volume
+            indicators['obv'] = self.on_balance_volume(df['close'], df['volume'])
+
+            # Parabolic SAR
+            indicators['parabolic_sar'] = self.parabolic_sar(df['high'], df['low'])
+
+            # Average Directional Index
+            adx_data = self.adx(df['high'], df['low'], df['close'])
+            indicators.update(adx_data)
+
+            # Chaikin Oscillator
+            indicators['chaikin_oscillator'] = self.chaikin_oscillator(df['high'], df['low'], df['close'], df['volume'])
+
+            # Williams %R
+            indicators['williams_r'] = self.williams_r(df['high'], df['low'], df['close'])
             
             self.log("Calculated all technical indicators")
             return indicators
@@ -355,3 +382,116 @@ class TechnicalIndicators:
                 'current_price': 0,
                 'total_range': 0
             }
+
+    def stochastic_oscillator(self, high, low, close, k_period=14, d_period=3):
+        """Calculate Stochastic Oscillator (%K and %D)"""
+        lowest_low = low.rolling(window=k_period).min()
+        highest_high = high.rolling(window=k_period).max()
+        percent_k = 100 * (close - lowest_low) / (highest_high - lowest_low)
+        percent_d = percent_k.rolling(window=d_period).mean()
+        return {'stoch_k': percent_k, 'stoch_d': percent_d}
+
+    def ichimoku_cloud(self, high, low, close):
+        """Calculate Ichimoku Cloud components"""
+        conversion_line = (high.rolling(9).max() + low.rolling(9).min()) / 2
+        base_line = (high.rolling(26).max() + low.rolling(26).min()) / 2
+        leading_span_a = ((conversion_line + base_line) / 2).shift(26)
+        leading_span_b = ((high.rolling(52).max() + low.rolling(52).min()) / 2).shift(26)
+        lagging_span = close.shift(-26)
+        return {
+            'ichimoku_tenkan': conversion_line,
+            'ichimoku_kijun': base_line,
+            'ichimoku_span_a': leading_span_a,
+            'ichimoku_span_b': leading_span_b,
+            'ichimoku_chikou': lagging_span
+        }
+
+    def vwap(self, df):
+        """Calculate Volume Weighted Average Price"""
+        typical_price = (df['high'] + df['low'] + df['close']) / 3
+        vwap = (typical_price * df['volume']).cumsum() / df['volume'].cumsum()
+        return vwap
+
+    def on_balance_volume(self, close, volume):
+        """Calculate On-Balance Volume"""
+        obv = [0]
+        for i in range(1, len(close)):
+            if close.iloc[i] > close.iloc[i - 1]:
+                obv.append(obv[-1] + volume.iloc[i])
+            elif close.iloc[i] < close.iloc[i - 1]:
+                obv.append(obv[-1] - volume.iloc[i])
+            else:
+                obv.append(obv[-1])
+        return pd.Series(obv, index=close.index)
+
+    def parabolic_sar(self, high, low, step=0.02, max_step=0.2):
+        """Calculate Parabolic SAR"""
+        sar = pd.Series(index=high.index, dtype='float64')
+        trend_up = True
+        af = step
+        ep = low.iloc[0]
+        sar.iloc[0] = low.iloc[0]
+
+        for i in range(1, len(high)):
+            prev_sar = sar.iloc[i - 1]
+            if trend_up:
+                sar.iloc[i] = prev_sar + af * (ep - prev_sar)
+                sar.iloc[i] = min(sar.iloc[i], low.iloc[i - 1], low.iloc[i])
+                if high.iloc[i] > ep:
+                    ep = high.iloc[i]
+                    af = min(af + step, max_step)
+                if low.iloc[i] < sar.iloc[i]:
+                    trend_up = False
+                    sar.iloc[i] = ep
+                    ep = low.iloc[i]
+                    af = step
+            else:
+                sar.iloc[i] = prev_sar + af * (ep - prev_sar)
+                sar.iloc[i] = max(sar.iloc[i], high.iloc[i - 1], high.iloc[i])
+                if low.iloc[i] < ep:
+                    ep = low.iloc[i]
+                    af = min(af + step, max_step)
+                if high.iloc[i] > sar.iloc[i]:
+                    trend_up = True
+                    sar.iloc[i] = ep
+                    ep = high.iloc[i]
+                    af = step
+        return sar
+
+    def adx(self, high, low, close, period=14):
+        """Calculate Average Directional Index"""
+        plus_dm = high.diff()
+        minus_dm = low.diff() * -1
+        plus_dm[plus_dm < 0] = 0
+        minus_dm[minus_dm < 0] = 0
+        plus_dm[plus_dm < minus_dm] = 0
+        minus_dm[minus_dm <= plus_dm] = 0
+
+        tr1 = high - low
+        tr2 = (high - close.shift()).abs()
+        tr3 = (low - close.shift()).abs()
+        tr = pd.concat([tr1, tr2, tr3], axis=1).max(axis=1)
+
+        atr = tr.rolling(window=period).mean()
+        plus_di = 100 * (plus_dm.rolling(window=period).mean() / atr)
+        minus_di = 100 * (minus_dm.rolling(window=period).mean() / atr)
+        dx = (abs(plus_di - minus_di) / (plus_di + minus_di)) * 100
+        adx = dx.rolling(window=period).mean()
+        return {'plus_di': plus_di, 'minus_di': minus_di, 'adx': adx}
+
+    def chaikin_oscillator(self, high, low, close, volume, short=3, long=10):
+        """Calculate Chaikin Oscillator"""
+        mfm = ((close - low) - (high - close)) / (high - low)
+        mfm = mfm.replace([np.inf, -np.inf], 0).fillna(0)
+        mfv = mfm * volume
+        adl = mfv.cumsum()
+        ema_short = adl.ewm(span=short).mean()
+        ema_long = adl.ewm(span=long).mean()
+        return ema_short - ema_long
+
+    def williams_r(self, high, low, close, period=14):
+        """Calculate Williams %R"""
+        highest_high = high.rolling(window=period).max()
+        lowest_low = low.rolling(window=period).min()
+        wr = -100 * (highest_high - close) / (highest_high - lowest_low)
+        return wr
