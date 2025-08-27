@@ -1,11 +1,80 @@
 const https = require('https');
 
+// Sistema de rate limiting baseado em IP
+const rateLimitStore = new Map(); // IP -> { lastRequest: timestamp, count: number }
+
 // Lista específica de criptomoedas para análise
 const TARGET_CRYPTOCURRENCIES = [
   'bitcoin', 'ethereum', 'ripple', 'tether', 'binancecoin', 
   'solana', 'usd-coin', 'dogecoin', 'tron', 'cardano', 
   'chainlink', 'sui', 'stellar', 'uniswap', 'polkadot', 'dai'
 ];
+
+// Função para obter IP real do usuário
+function getClientIP(event) {
+  // Netlify Functions pode ter diferentes headers para IP
+  const headers = event.headers || {};
+  
+  // Tentar diferentes headers de IP
+  const ip = headers['x-forwarded-for'] || 
+             headers['x-real-ip'] || 
+             headers['cf-connecting-ip'] || 
+             headers['x-client-ip'] ||
+             'unknown';
+  
+  // Se x-forwarded-for contém múltiplos IPs, pegar o primeiro
+  return ip.split(',')[0].trim();
+}
+
+// Função para verificar rate limit
+function checkRateLimit(ip) {
+  const now = Date.now(); // Usar timestamp do servidor, não do cliente
+  const oneHour = 60 * 60 * 1000; // 1 hora em milissegundos
+  
+  if (!rateLimitStore.has(ip)) {
+    // Primeira solicitação deste IP
+    rateLimitStore.set(ip, {
+      lastRequest: now,
+      count: 1
+    });
+    return { allowed: true, remainingTime: 0 };
+  }
+  
+  const record = rateLimitStore.get(ip);
+  const timeSinceLastRequest = now - record.lastRequest;
+  
+  if (timeSinceLastRequest < oneHour) {
+    // Ainda dentro do período de 1 hora
+    const remainingTime = Math.ceil((oneHour - timeSinceLastRequest) / 1000 / 60); // em minutos
+    return { 
+      allowed: false, 
+      remainingTime,
+      message: `Rate limit exceeded. Try again in ${remainingTime} minutes.`
+    };
+  } else {
+    // Passou 1 hora, resetar contador
+    rateLimitStore.set(ip, {
+      lastRequest: now,
+      count: 1
+    });
+    return { allowed: true, remainingTime: 0 };
+  }
+}
+
+// Função para limpar IPs antigos (manutenção)
+function cleanupOldIPs() {
+  const now = Date.now();
+  const oneDay = 24 * 60 * 60 * 1000; // 1 dia
+  
+  for (const [ip, record] of rateLimitStore.entries()) {
+    if (now - record.lastRequest > oneDay) {
+      rateLimitStore.delete(ip);
+    }
+  }
+}
+
+// Limpar IPs antigos a cada 100 solicitações
+let requestCount = 0;
 
 // Função principal da Netlify Function
 exports.handler = async (event, context) => {
@@ -26,7 +95,36 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    console.log('Starting cryptocurrency analysis...');
+    // Obter IP do cliente
+    const clientIP = getClientIP(event);
+    console.log(`🔍 Request from IP: ${clientIP}`);
+    
+    // Verificar rate limit
+    const rateLimitCheck = checkRateLimit(clientIP);
+    
+    if (!rateLimitCheck.allowed) {
+      console.log(`🚫 Rate limit exceeded for IP ${clientIP}: ${rateLimitCheck.message}`);
+      return {
+        statusCode: 429, // Too Many Requests
+        headers,
+        body: JSON.stringify({
+          success: false,
+          error: 'Rate limit exceeded',
+          message: rateLimitCheck.message,
+          remainingTime: rateLimitCheck.remainingTime,
+          timestamp: new Date().toISOString()
+        })
+      };
+    }
+    
+    // Incrementar contador de solicitações para limpeza
+    requestCount++;
+    if (requestCount % 100 === 0) {
+      cleanupOldIPs();
+      console.log(`🧹 Cleaned up old IPs. Current store size: ${rateLimitStore.size}`);
+    }
+    
+    console.log('✅ Rate limit check passed, starting cryptocurrency analysis...');
     
     let targetCoins;
     let source = 'API';
@@ -80,7 +178,11 @@ exports.handler = async (event, context) => {
         timestamp: new Date().toISOString().split('T')[0],
         message: `Technical analysis of selected cryptocurrencies completed (${source})`,
         data_source: source,
-        api_attempts: retryCount
+        api_attempts: retryCount,
+        rate_limit_info: {
+          ip: clientIP,
+          next_request_allowed: new Date(Date.now() + 60 * 60 * 1000).toISOString()
+        }
       })
     };
   } catch (error) {

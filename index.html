@@ -415,12 +415,18 @@
                         'Content-Type': 'application/json',
                     }
                 })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
-                    return response.json();
-                })
+                                 .then(response => {
+                     if (!response.ok) {
+                         // Tratar especificamente o erro de rate limit
+                         if (response.status === 429) {
+                             return response.json().then(data => {
+                                 throw new Error(`RATE_LIMIT: ${data.message}`);
+                             });
+                         }
+                         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                     }
+                     return response.json();
+                 })
                 .then(data => {
                     if (data.success) {
                         displayResults(data);
@@ -428,14 +434,19 @@
                         displayError(data.error || 'Erro desconhecido na análise');
                     }
                 })
-                .catch(error => {
-                    console.error('Error:', error);
-                    if (error.message.includes('HTTP')) {
-                        displayError(`Server error: ${error.message}`);
-                    } else {
-                        displayError('Connection error. Check your internet and try again.');
-                    }
-                })
+                                 .catch(error => {
+                     console.error('Error:', error);
+                     
+                     // Tratar erro de rate limit especificamente
+                     if (error.message.includes('RATE_LIMIT:')) {
+                         const rateLimitMessage = error.message.replace('RATE_LIMIT: ', '');
+                         displayRateLimitError(rateLimitMessage);
+                     } else if (error.message.includes('HTTP')) {
+                         displayError(`Server error: ${error.message}`);
+                     } else {
+                         displayError('Connection error. Check your internet and try again.');
+                     }
+                 })
                 .finally(() => {
                     // Re-enable button
                     searchBtn.disabled = false;
@@ -455,13 +466,20 @@
                         resultsContainer.appendChild(card);
                     });
 
-                    // Show analysis info
-                    analysisInfo.innerHTML = `
-                        <p><strong>Complete analysis:</strong> ${data.total_analyzed} cryptocurrencies analyzed</p>
-                        <p><strong>Timestamp:</strong> ${data.timestamp}</p>
-                        <p><strong>Best opportunities:</strong> Top ${data.results.length} selected</p>
-                        <p><em>💡 Real-time technical analysis with real market data</em></p>
-                    `;
+                                         // Show analysis info
+                     analysisInfo.innerHTML = `
+                         <p><strong>Complete analysis:</strong> ${data.total_analyzed} cryptocurrencies analyzed</p>
+                         <p><strong>Timestamp:</strong> ${data.timestamp}</p>
+                         <p><strong>Best opportunities:</strong> Top ${data.results.length} selected</p>
+                         <p><em>💡 Real-time technical analysis with real market data</em></p>
+                         ${data.rate_limit_info ? `
+                             <div style="margin-top: 1rem; padding: 1rem; background: rgba(0, 255, 157, 0.1); border: 1px solid rgba(0, 255, 157, 0.3); border-radius: 8px;">
+                                 <p style="color: #00ff9d; font-weight: 600; margin: 0 0 0.5rem 0;">⏰ Rate Limit Info</p>
+                                 <p style="margin: 0.5rem 0; font-size: 0.9rem;">Next request allowed: ${new Date(data.rate_limit_info.next_request_allowed).toLocaleString()}</p>
+                                 <p style="margin: 0; font-size: 0.8rem; color: #888;">Limit: 1 request per hour per IP address</p>
+                             </div>
+                         ` : ''}
+                     `;
 
                     resultsSection.style.display = 'block';
                 } else {
@@ -512,10 +530,25 @@
                 return card;
             }
 
-            function displayError(message) {
-                errorMessage.textContent = message;
-                errorSection.style.display = 'block';
-            }
+                         function displayError(message) {
+                 errorMessage.textContent = message;
+                 errorSection.style.display = 'block';
+             }
+             
+             function displayRateLimitError(message) {
+                 errorMessage.innerHTML = `
+                     <div style="text-align: center;">
+                         <h3 style="color: #ff9800; margin-bottom: 1rem;">⏰ Rate Limit Exceeded</h3>
+                         <p style="margin-bottom: 1rem;">${message}</p>
+                         <div style="background: rgba(255, 152, 0, 0.1); border: 1px solid rgba(255, 152, 0, 0.3); border-radius: 8px; padding: 1rem; margin-top: 1rem;">
+                             <p style="color: #ff9800; font-weight: 600; margin: 0;">
+                                 💡 This limit prevents abuse and ensures fair usage for all users.
+                             </p>
+                         </div>
+                     </div>
+                 `;
+                 errorSection.style.display = 'block';
+             }
 
             // Add some visual feedback for button interactions
             searchBtn.addEventListener('mouseenter', function() {

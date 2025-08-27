@@ -9,7 +9,7 @@ class AdvancedParticlesSystem {
     this.quantity = 120;
     this.staticity = 50;
     this.ease = 50;
-    this.size = 0.4;
+    this.size = 0.45;
     this.color = '#00ff9d'; // Primary green color
     this.vx = 0;
     this.vy = 0;
