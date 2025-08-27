@@ -26,7 +26,7 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    console.log('Iniciando análise de criptomoedas...');
+    console.log('Starting cryptocurrency analysis...');
     
     let targetCoins;
     let source = 'API';
@@ -34,21 +34,21 @@ exports.handler = async (event, context) => {
     try {
       // Tentar obter dados da API
       targetCoins = await getTargetCryptocurrencies();
-      console.log(`Criptomoedas obtidas da API: ${targetCoins.length}`);
+      console.log(`Cryptocurrencies obtained from API: ${targetCoins.length}`);
     } catch (apiError) {
-      console.log('API falhou, usando dados de fallback:', apiError.message);
+      console.log('API failed, using fallback data:', apiError.message);
       // Usar dados de fallback se a API falhar
       targetCoins = getFallbackData();
       source = 'Fallback';
     }
     
     if (targetCoins.length === 0) {
-      throw new Error('Nenhuma criptomoeda disponível para análise');
+      throw new Error('No cryptocurrencies available for analysis');
     }
     
-    // Gerar análise simples e rápida
+    // Generate simple and fast analysis
     const analysisResults = generateSimpleAnalysis(targetCoins);
-    console.log(`Análises geradas: ${analysisResults.length}`);
+    console.log(`Analyses generated: ${analysisResults.length}`);
     
     return {
       statusCode: 200,
@@ -57,20 +57,20 @@ exports.handler = async (event, context) => {
         success: true,
         results: analysisResults,
         total_analyzed: targetCoins.length,
-        timestamp: new Date().toISOString(),
-        message: `Análise técnica das criptomoedas selecionadas concluída (${source})`,
+        timestamp: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+        message: `Technical analysis of selected cryptocurrencies completed (${source})`,
         data_source: source
       })
     };
   } catch (error) {
-    console.error('Erro na análise:', error.message);
+    console.error('Analysis error:', error.message);
     
     return {
       statusCode: 500,
       headers,
       body: JSON.stringify({
         success: false,
-        error: 'Erro na análise técnica: ' + error.message,
+        error: 'Technical analysis error: ' + error.message,
         timestamp: new Date().toISOString()
       })
     };
@@ -132,7 +132,7 @@ function getFallbackData() {
     }
   ];
   
-  console.log(`Dados de fallback gerados: ${fallbackCoins.length} criptomoedas`);
+  console.log(`Fallback data generated: ${fallbackCoins.length} cryptocurrencies`);
   return fallbackCoins;
 }
 
@@ -143,7 +143,7 @@ function getTargetCryptocurrencies() {
     const coinIds = TARGET_CRYPTOCURRENCIES.join(',');
     const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${coinIds}&order=market_cap_desc&sparkline=false&price_change_percentage=24h`;
     
-    console.log('Fazendo requisição para CoinGecko API...');
+    console.log('Making request to CoinGecko API...');
     
     const req = https.get(url, (res) => {
       let data = '';
@@ -154,7 +154,7 @@ function getTargetCryptocurrencies() {
       
       res.on('end', () => {
         try {
-          console.log(`Resposta da API: ${res.statusCode} ${res.statusMessage}`);
+          console.log(`API Response: ${res.statusCode} ${res.statusMessage}`);
           
           if (res.statusCode !== 200) {
             reject(new Error(`HTTP ${res.statusCode}: ${res.statusMessage}`));
@@ -162,12 +162,12 @@ function getTargetCryptocurrencies() {
           }
           
           const jsonData = JSON.parse(data);
-          console.log(`Dados recebidos: ${jsonData.length} criptomoedas`);
+          console.log(`Data received: ${jsonData.length} cryptocurrencies`);
 
-          if (jsonData.length === 0) {
-            reject(new Error('Nenhuma criptomoeda encontrada na API'));
-            return;
-          }
+                      if (jsonData.length === 0) {
+              reject(new Error('No cryptocurrencies found in API'));
+              return;
+            }
 
           const result = jsonData.map(coin => ({
             id: coin.id,
@@ -180,24 +180,24 @@ function getTargetCryptocurrencies() {
             volume_24h: coin.total_volume
           }));
           
-          console.log(`Criptomoedas processadas: ${result.length}`);
+          console.log(`Cryptocurrencies processed: ${result.length}`);
           resolve(result);
         } catch (parseError) {
-          console.error('Erro ao fazer parse dos dados:', parseError.message);
-          reject(new Error('Erro ao processar dados da API'));
+          console.error('Error parsing data:', parseError.message);
+          reject(new Error('Error processing API data'));
         }
       });
     });
     
     req.on('error', (err) => {
-      console.error('Erro na requisição HTTPS:', err.message);
-      reject(new Error('Erro de conexão com a API'));
+      console.error('HTTPS request error:', err.message);
+      reject(new Error('API connection error'));
     });
     
     // Timeout de 10 segundos
     req.setTimeout(10000, () => {
       req.destroy();
-      reject(new Error('Timeout na requisição à API'));
+      reject(new Error('API request timeout'));
     });
   });
 }
@@ -208,10 +208,10 @@ function generateSimpleAnalysis(coins) {
   
   for (const coin of coins) {
     try {
-      // Análise básica baseada nos dados disponíveis
-      const analysis = analyzeCoin(coin);
+          // Basic analysis based on available data
+    const analysis = analyzeCoin(coin);
       
-      if (analysis.score > 0.2) { // Score baixo para incluir mais resultados
+              if (analysis.score > 0.2) { // Low score to include more results
         results.push({
           symbol: coin.symbol,
           name: coin.name,
@@ -224,13 +224,13 @@ function generateSimpleAnalysis(coins) {
           volume_24h: coin.volume_24h
         });
       }
-    } catch (error) {
-      console.error(`Erro ao analisar ${coin.symbol}:`, error.message);
-      continue;
-    }
+          } catch (error) {
+        console.error(`Error analyzing ${coin.symbol}:`, error.message);
+        continue;
+      }
   }
   
-  // Ordenar por score e retornar top 10
+      // Sort by score and return top 10
   return results
     .sort((a, b) => b.score - a.score)
     .slice(0, 10);
@@ -239,39 +239,39 @@ function generateSimpleAnalysis(coins) {
 // Analisar uma criptomoeda individual
 function analyzeCoin(coin) {
   let score = 0.5; // Score base
-  let type = 'NEUTRAL';
+  let type = 'SHORT';
   let potentialGain = 10;
   
-  // Análise baseada na variação de preço
+  // Analysis based on price variation
   if (coin.price_change_percentage_24h > 3) {
-    score += 0.2; // Tendência de alta
+    score += 0.2; // Uptrend
     type = 'LONG';
   } else if (coin.price_change_percentage_24h < -3) {
-    score += 0.15; // Oportunidade de compra em baixa
+    score += 0.15; // Buying opportunity at low
     type = 'LONG';
   }
   
-  // Análise baseada no volume
+  // Analysis based on volume
   if (coin.volume_24h > 1000000000) { // > 1B
-    score += 0.2; // Volume muito alto
+    score += 0.2; // Very high volume
   } else if (coin.volume_24h > 100000000) { // > 100M
-    score += 0.15; // Volume alto
+    score += 0.15; // High volume
   } else if (coin.volume_24h > 10000000) { // > 10M
-    score += 0.1; // Volume médio
+    score += 0.1; // Medium volume
   }
   
-  // Análise baseada no market cap
+  // Analysis based on market cap
   if (coin.market_cap > 10000000000) { // > 10B
-    score += 0.1; // Moeda estabelecida
+    score += 0.1; // Established coin
   }
   
-  // Normalizar score
+  // Normalize score
   score = Math.max(0, Math.min(1, score));
   
-  // Calcular potencial de ganho
-  potentialGain = Math.round((score * 20 + 5) * 10) / 10; // 5% a 25%
+  // Calculate potential gain
+  potentialGain = Math.round((score * 20 + 5) * 10) / 10; // 5% to 25%
   
-  // Gerar descrição
+  // Generate description
   const description = generateDescription(coin, score);
   
   return {
@@ -282,38 +282,38 @@ function analyzeCoin(coin) {
   };
 }
 
-// Gerar descrição da análise
+// Generate analysis description
 function generateDescription(coin, score) {
-  let description = `Análise Técnica ${coin.symbol}:\n`;
+  let description = `Technical Analysis ${coin.symbol}:\n`;
   
-  // Tendência baseada na variação 24h
+  // Trend based on 24h variation
   if (coin.price_change_percentage_24h > 0) {
-    description += `• Tendência: Bullish (+${coin.price_change_percentage_24h.toFixed(2)}% 24h)\n`;
+    description += `• Trend: Bullish (+${coin.price_change_percentage_24h.toFixed(2)}% 24h)\n`;
   } else {
-    description += `• Tendência: Bearish (${coin.price_change_percentage_24h.toFixed(2)}% 24h)\n`;
+    description += `• Trend: Bearish (${coin.price_change_percentage_24h.toFixed(2)}% 24h)\n`;
   }
   
-  // Preço atual
-  description += `• Preço atual: $${coin.current_price.toFixed(4)}\n`;
+  // Current price
+  description += `• Current price: $${coin.current_price.toFixed(4)}\n`;
   
   // Volume
   if (coin.volume_24h > 1000000000) {
-    description += `• Volume: Muito Alto ($${(coin.volume_24h / 1000000000).toFixed(2)}B)\n`;
+    description += `• Volume: Very High ($${(coin.volume_24h / 1000000000).toFixed(2)}B)\n`;
   } else if (coin.volume_24h > 100000000) {
-    description += `• Volume: Alto ($${(coin.volume_24h / 1000000).toFixed(2)}M)\n`;
+    description += `• Volume: High ($${(coin.volume_24h / 1000000).toFixed(2)}M)\n`;
   } else {
-    description += `• Volume: Médio ($${(coin.volume_24h / 1000000).toFixed(2)}M)\n`;
+    description += `• Volume: Medium ($${(coin.volume_24h / 1000000).toFixed(2)}M)\n`;
   }
   
   // Market cap
   if (coin.market_cap > 10000000000) {
-    description += `• Market Cap: Alto (estabelecido)\n`;
+    description += `• Market Cap: High (established)\n`;
   } else {
-    description += `• Market Cap: Médio (crescimento)\n`;
+    description += `• Market Cap: Medium (growth)\n`;
   }
   
-  description += `\nEstratégia: ${score > 0.6 ? 'Compra' : 'Venda'} com alvo +${Math.round(score * 20 + 5)}%`;
-  description += `\nConfiança: ${Math.round(score * 100)}%`;
+  description += `\nStrategy: ${score > 0.6 ? 'Buy' : 'Sell'} with target +${Math.round(score * 20 + 5)}%`;
+  description += `\nConfidence: ${Math.round(score * 100)}%`;
   
   return description;
 }

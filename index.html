@@ -329,10 +329,7 @@
     <div class="container">
         <header>
             <h1>🚀 Crypto Trading Analyzer</h1>
-            <p>Análise técnica avançada de criptomoedas em tempo real</p>
-            <div style="margin-top: 1rem;">
-                <span style="color: #00ff9d; font-size: 0.9rem;">ANÁLISE EM TEMPO REAL</span>
-            </div>
+            <p>Technical analysis of cryptocurrencies</p>
         </header>
 
         <main>
@@ -343,11 +340,11 @@
                         <div class="spinner"></div>
                     </div>
                 </button>
-                <p class="subtitle">Clique para encontrar as melhores oportunidades de trading agora</p>
+                <p class="subtitle">Click to find the best trading opportunities now</p>
             </div>
 
             <div id="results" class="results-section" style="display: none;">
-                <h2>📊 Melhores Oportunidades de Trading</h2>
+                <h2>📊 Best Trading Opportunities</h2>
                 <div id="resultsContainer" class="results-container">
                     <!-- Os resultados aparecerão aqui -->
                 </div>
@@ -357,21 +354,21 @@
             </div>
 
             <div id="error" class="error-section" style="display: none;">
-                <h2>❌ Erro na Análise</h2>
+                <h2>❌ Analysis Error</h2>
                 <p id="errorMessage"></p>
             </div>
         </main>
 
         <footer>
-            <p>© 2025 Crypto Trading Analyzer - Análise técnica em tempo real</p>
+            <p>© 2025 Crypto Trading Analyzer - Technical analysis</p>
             <p style="margin-top: 0.5rem; font-size: 0.8rem; color: #888;">
-                Dados fornecidos por CoinGecko API • Análise técnica calculada em tempo real
+                Data provided by CoinGecko API • Technical analysis calculated in real time
             </p>
         </footer>
     </div>
 
     <script>
-        // Crypto Trading Analyzer - Frontend JavaScript (Versão com Análise Real da Netlify)
+        // Crypto Trading Analyzer - Frontend JavaScript (Version with Netlify Real Analysis)
 
         document.addEventListener('DOMContentLoaded', function() {
             const searchBtn = document.getElementById('searchBtn');
@@ -397,7 +394,7 @@
                 resultsSection.style.display = 'none';
                 errorSection.style.display = 'none';
 
-                // Chamar função real da Netlify para análise das criptomoedas selecionadas
+                // Call Netlify real function for analysis of selected cryptocurrencies
                 fetch('/.netlify/functions/analyze-crypto', {
                     method: 'GET',
                     headers: {
@@ -420,9 +417,9 @@
                 .catch(error => {
                     console.error('Error:', error);
                     if (error.message.includes('HTTP')) {
-                        displayError(`Erro do servidor: ${error.message}`);
+                        displayError(`Server error: ${error.message}`);
                     } else {
-                        displayError('Erro de conexão. Verifique sua internet e tente novamente.');
+                        displayError('Connection error. Check your internet and try again.');
                     }
                 })
                 .finally(() => {
@@ -433,7 +430,7 @@
                 });
             }
 
-            // Funções removidas - agora usando análise real da Netlify
+            // Functions removed - now using Netlify real analysis
 
             function displayResults(data) {
                 resultsContainer.innerHTML = '';
@@ -446,15 +443,15 @@
 
                     // Show analysis info
                     analysisInfo.innerHTML = `
-                        <p><strong>Análise completa:</strong> ${data.total_analyzed} criptomoedas analisadas</p>
+                        <p><strong>Complete analysis:</strong> ${data.total_analyzed} cryptocurrencies analyzed</p>
                         <p><strong>Timestamp:</strong> ${data.timestamp}</p>
-                        <p><strong>Melhores oportunidades:</strong> Top ${data.results.length} selecionadas</p>
-                        <p><em>💡 Análise técnica em tempo real com dados reais do mercado</em></p>
+                        <p><strong>Best opportunities:</strong> Top ${data.results.length} selected</p>
+                        <p><em>💡 Real-time technical analysis with real market data</em></p>
                     `;
 
                     resultsSection.style.display = 'block';
                 } else {
-                    displayError('Nenhuma oportunidade de trading encontrada no momento.');
+                    displayError('No trading opportunities found at the moment.');
                 }
             }
 
@@ -465,7 +462,7 @@
                 const signalTypeClass = result.type === 'LONG' ? 'signal-long' : 'signal-short';
                 const emoji = result.type === 'LONG' ? '🔼' : '🔽';
                 
-                // Adicionar informações de preço e variação se disponíveis
+                // Add price and variation information if available
                 const priceInfo = result.current_price ? `
                     <div style="margin-bottom: 1rem; font-size: 0.9rem; color: #a0a0a0;">
                         <span style="color: #ffffff; font-weight: 600;">$${result.current_price.toFixed(4)}</span>
@@ -475,7 +472,7 @@
                     </div>
                 ` : '';
                 
-                // Adicionar barra de confiança se disponível
+                // Add confidence bar if available
                 const confidenceBar = result.score ? `
                     <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
                         <span style="font-size: 0.9rem; color: #00ff9d; font-weight: 600; min-width: 60px;">${Math.round(result.score * 100)}%</span>
