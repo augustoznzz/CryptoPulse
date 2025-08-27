@@ -1,5 +1,12 @@
 const axios = require('axios');
 
+// Lista específica de criptomoedas para análise
+const TARGET_CRYPTOCURRENCIES = [
+  'bitcoin', 'ethereum', 'ripple', 'tether', 'binancecoin', 
+  'solana', 'usd-coin', 'dogecoin', 'tron', 'cardano', 
+  'chainlink', 'sui', 'stellar', 'uniswap', 'polkadot', 'dai'
+];
+
 // Função principal da Netlify Function
 exports.handler = async (event, context) => {
   // Habilitar CORS
@@ -19,11 +26,11 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    // Obter top 50 criptomoedas por market cap
-    const topCoins = await getTopCryptocurrencies();
+    // Obter dados das criptomoedas específicas
+    const targetCoins = await getTargetCryptocurrencies();
     
     // Analisar cada criptomoeda
-    const analysisResults = await analyzeCryptocurrencies(topCoins);
+    const analysisResults = await analyzeCryptocurrencies(targetCoins);
     
     // Filtrar e ordenar resultados
     const filteredResults = filterAndSortResults(analysisResults);
@@ -34,9 +41,9 @@ exports.handler = async (event, context) => {
       body: JSON.stringify({
         success: true,
         results: filteredResults,
-        total_analyzed: topCoins.length,
+        total_analyzed: targetCoins.length,
         timestamp: new Date().toISOString(),
-        message: 'Análise técnica em tempo real concluída'
+        message: 'Análise técnica das criptomoedas selecionadas concluída'
       })
     };
   } catch (error) {
@@ -54,15 +61,15 @@ exports.handler = async (event, context) => {
   }
 };
 
-// Obter top 50 criptomoedas
-async function getTopCryptocurrencies() {
+// Obter dados das criptomoedas específicas
+async function getTargetCryptocurrencies() {
   try {
-    // Usar CoinGecko API (gratuita e confiável)
+    // Obter dados de todas as criptomoedas para filtrar as que queremos
     const response = await axios.get('https://api.coingecko.com/api/v3/coins/markets', {
       params: {
         vs_currency: 'usd',
         order: 'market_cap_desc',
-        per_page: 50,
+        per_page: 100, // Buscar mais para garantir que encontramos todas
         page: 1,
         sparkline: false,
         price_change_percentage: '24h'
@@ -70,7 +77,19 @@ async function getTopCryptocurrencies() {
       timeout: 10000
     });
 
-    return response.data.map(coin => ({
+    // Filtrar apenas as criptomoedas que queremos
+    const filteredCoins = response.data.filter(coin => 
+      TARGET_CRYPTOCURRENCIES.includes(coin.id)
+    );
+
+    // Verificar se encontramos todas as criptomoedas desejadas
+    if (filteredCoins.length !== TARGET_CRYPTOCURRENCIES.length) {
+      const foundIds = filteredCoins.map(coin => coin.id);
+      const missingIds = TARGET_CRYPTOCURRENCIES.filter(id => !foundIds.includes(id));
+      console.warn(`Criptomoedas não encontradas: ${missingIds.join(', ')}`);
+    }
+
+    return filteredCoins.map(coin => ({
       id: coin.id,
       symbol: coin.symbol.toUpperCase(),
       name: coin.name,
@@ -268,7 +287,7 @@ function generateTradingSignal(indicators, coin) {
   
   // Análise RSI
   if (indicators.rsi < 30) {
-    score += 0.25; // Sobrecomprado
+    score += 0.25; // Sobrevendido
     type = 'LONG';
   } else if (indicators.rsi > 70) {
     score -= 0.2; // Sobrecomprado
@@ -368,6 +387,6 @@ function filterAndSortResults(results) {
   // Ordenar por score (maior primeiro)
   const sortedResults = uniqueResults.sort((a, b) => b.score - a.score);
   
-  // Retornar top 10 resultados
-  return sortedResults.slice(0, 10);
+  // Retornar todos os resultados (máximo 16)
+  return sortedResults.slice(0, 16);
 }
