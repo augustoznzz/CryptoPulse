@@ -239,7 +239,7 @@ function generateSimpleAnalysis(coins) {
 // Analisar uma criptomoeda individual
 function analyzeCoin(coin) {
   let score = 0.5; // Score base
-  let type = 'SHORT';
+  let type = 'NEUTRAL';
   let potentialGain = 10;
   
   // Analysis based on price variation
@@ -270,6 +270,13 @@ function analyzeCoin(coin) {
   
   // Calculate potential gain
   potentialGain = Math.round((score * 20 + 5) * 10) / 10; // 5% to 25%
+  
+  // Determine type based on potential gain and score
+  if (potentialGain > 15 && score > 0.6) {
+    type = 'LONG'; // High potential = Buy
+  } else if (potentialGain < 10 || score < 0.4) {
+    type = 'SHORT'; // Low potential = Sell
+  }
   
   // Generate description
   const description = generateDescription(coin, score);

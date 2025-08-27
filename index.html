@@ -18,6 +18,18 @@
             color: #e0e0e0;
             min-height: 100vh;
             line-height: 1.6;
+            position: relative;
+        }
+        
+        /* Particles Canvas */
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
         }
 
         .container {
@@ -533,5 +545,8 @@
             }
         });
     </script>
+    
+    <!-- Particles System -->
+    <script src="static/js/particles.js"></script>
 </body>
 </html>
