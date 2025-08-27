@@ -1,5 +1,3 @@
-const axios = require('axios');
-
 // Lista específica de criptomoedas para análise
 const TARGET_CRYPTOCURRENCIES = [
   'bitcoin', 'ethereum', 'ripple', 'tether', 'binancecoin', 
@@ -64,21 +62,17 @@ exports.handler = async (event, context) => {
 // Obter dados das criptomoedas específicas
 async function getTargetCryptocurrencies() {
   try {
-    // Obter dados de todas as criptomoedas para filtrar as que queremos
-    const response = await axios.get('https://api.coingecko.com/api/v3/coins/markets', {
-      params: {
-        vs_currency: 'usd',
-        order: 'market_cap_desc',
-        per_page: 100, // Buscar mais para garantir que encontramos todas
-        page: 1,
-        sparkline: false,
-        price_change_percentage: '24h'
-      },
-      timeout: 10000
-    });
+    // Usar fetch nativo em vez de axios
+    const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h');
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
 
     // Filtrar apenas as criptomoedas que queremos
-    const filteredCoins = response.data.filter(coin => 
+    const filteredCoins = data.filter(coin => 
       TARGET_CRYPTOCURRENCIES.includes(coin.id)
     );
 
@@ -145,16 +139,15 @@ async function analyzeCryptocurrencies(coins) {
 // Obter dados históricos
 async function getHistoricalData(coinId) {
   try {
-    const response = await axios.get(`https://api.coingecko.com/api/v3/coins/${coinId}/market_chart`, {
-      params: {
-        vs_currency: 'usd',
-        days: 30, // 30 dias de dados
-        interval: 'daily'
-      },
-      timeout: 10000
-    });
+    const response = await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=30&interval=daily`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
 
-    return response.data.prices.map(([timestamp, price]) => ({
+    return data.prices.map(([timestamp, price]) => ({
       timestamp,
       price
     }));
