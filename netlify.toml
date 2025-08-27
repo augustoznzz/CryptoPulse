@@ -1,6 +1,6 @@
 [build]
   publish = "."
-  command = "bash netlify-build.sh"
+  command = "echo 'Build completed - CSS and JS inline'"
 
 [[redirects]]
   from = "/*"
