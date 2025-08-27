@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crypto Trading Analyzer</title>
+    <title>Crypto Trading Analyzer - Análise em Tempo Real</title>
     <style>
         * {
             margin: 0;
@@ -212,6 +212,64 @@
             margin-bottom: 1rem;
         }
 
+        .price-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            font-size: 0.9rem;
+            color: #a0a0a0;
+        }
+
+        .current-price {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        .price-change {
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            font-weight: 600;
+        }
+
+        .price-change.positive {
+            background: rgba(0, 255, 157, 0.2);
+            color: #00ff9d;
+        }
+
+        .price-change.negative {
+            background: rgba(255, 82, 82, 0.2);
+            color: #ff5252;
+        }
+
+        .confidence-score {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .confidence-bar {
+            flex: 1;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .confidence-fill {
+            height: 100%;
+            background: linear-gradient(135deg, #00ff9d 0%, #00b8ff 100%);
+            transition: width 0.3s ease;
+        }
+
+        .confidence-text {
+            font-size: 0.9rem;
+            color: #00ff9d;
+            font-weight: 600;
+            min-width: 60px;
+        }
+
         .trade-details {
             background: rgba(0, 0, 0, 0.3);
             border-radius: 12px;
@@ -250,6 +308,25 @@
         .error-section h2 {
             color: #ff5252;
             margin-bottom: 1rem;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            margin-right: 0.5rem;
+        }
+
+        .status-live {
+            background: #00ff9d;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
         }
 
         footer {
@@ -296,6 +373,12 @@
                 gap: 0.5rem;
                 align-items: flex-start;
             }
+
+            .price-info {
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: flex-start;
+            }
         }
     </style>
 </head>
@@ -303,22 +386,26 @@
     <div class="container">
         <header>
             <h1>🚀 Crypto Trading Analyzer</h1>
-            <p>Análise avançada de criptomoedas com indicadores técnicos em tempo real</p>
+            <p>Análise técnica avançada de criptomoedas em tempo real</p>
+            <div style="margin-top: 1rem;">
+                <span class="status-indicator status-live"></span>
+                <span style="color: #00ff9d; font-size: 0.9rem;">ANÁLISE EM TEMPO REAL</span>
+            </div>
         </header>
 
         <main>
             <div class="search-section">
                 <button id="searchBtn" class="search-button">
-                    <span class="button-text">Search for Trade</span>
+                    <span class="button-text">Analisar Mercado</span>
                     <div class="loading-spinner" style="display: none;">
                         <div class="spinner"></div>
                     </div>
                 </button>
-                <p class="subtitle">Clique para encontrar as melhores oportunidades de trading agora</p>
+                <p class="subtitle">Clique para análise técnica completa das top 50 criptomoedas</p>
             </div>
 
             <div id="results" class="results-section" style="display: none;">
-                <h2>📊 Melhores Oportunidades</h2>
+                <h2>📊 Melhores Oportunidades de Trading</h2>
                 <div id="resultsContainer" class="results-container">
                     <!-- Os resultados aparecerão aqui -->
                 </div>
@@ -334,7 +421,10 @@
         </main>
 
         <footer>
-            <p>© 2024 Crypto Trading Analyzer - Plataforma de análise de criptomoedas</p>
+            <p>© 2024 Crypto Trading Analyzer - Análise técnica em tempo real</p>
+            <p style="margin-top: 0.5rem; font-size: 0.8rem; color: #888;">
+                Dados fornecidos por CoinGecko API • Análise técnica calculada em tempo real
+            </p>
         </footer>
     </div>
 
@@ -350,80 +440,53 @@
             const errorMessage = document.getElementById('errorMessage');
 
             searchBtn.addEventListener('click', function() {
-                startSearch();
+                startAnalysis();
             });
 
-            function startSearch() {
+            function startAnalysis() {
+                // Disable button and show loading
                 searchBtn.disabled = true;
                 buttonText.style.opacity = '0';
                 loadingSpinner.style.display = 'block';
                 
+                // Hide previous results/errors
                 resultsSection.style.display = 'none';
                 errorSection.style.display = 'none';
 
-                setTimeout(() => {
-                    const demoData = generateDemoData();
-                    displayResults(demoData);
-                    
+                // Chamar função real da Netlify
+                fetch('/.netlify/functions/analyze-crypto', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        displayResults(data);
+                    } else {
+                        displayError(data.error || 'Erro desconhecido na análise');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    if (error.message.includes('HTTP')) {
+                        displayError(`Erro do servidor: ${error.message}`);
+                    } else {
+                        displayError('Erro de conexão. Verifique sua internet e tente novamente.');
+                    }
+                })
+                .finally(() => {
+                    // Re-enable button
                     searchBtn.disabled = false;
                     buttonText.style.opacity = '1';
                     loadingSpinner.style.display = 'none';
-                }, 2000);
-            }
-
-            function generateDemoData() {
-                const cryptoList = ['BTC', 'ETH', 'BNB', 'ADA', 'SOL', 'DOT', 'AVAX', 'MATIC', 'LINK', 'UNI'];
-                const results = [];
-                
-                const numResults = Math.floor(Math.random() * 3) + 3;
-                
-                for (let i = 0; i < numResults; i++) {
-                    const symbol = cryptoList[Math.floor(Math.random() * cryptoList.length)];
-                    const type = Math.random() > 0.5 ? 'LONG' : 'SHORT';
-                    const potentialGain = (Math.random() * 15 + 5).toFixed(1);
-                    
-                    const signal = generateSignalText(symbol, type, potentialGain);
-                    
-                    results.push({
-                        symbol: symbol,
-                        type: type,
-                        potential_gain: potentialGain,
-                        signal: signal
-                    });
-                }
-                
-                results.sort((a, b) => parseFloat(b.potential_gain) - parseFloat(a.potential_gain));
-                
-                return {
-                    success: true,
-                    results: results,
-                    total_analyzed: 50,
-                    timestamp: new Date().toLocaleString('pt-BR')
-                };
-            }
-
-            function generateSignalText(symbol, type, gain) {
-                const indicators = [
-                    'RSI: Sobrecomprado (70+)',
-                    'MACD: Cruzamento de alta',
-                    'Média Móvel: Preço acima da MA200',
-                    'Volume: Aumento de 25%',
-                    'Suporte: Testado e mantido',
-                    'Resistência: Próximo breakout',
-                    'Momentum: Forte tendência de alta',
-                    'Divergência: RSI vs Preço'
-                ];
-                
-                const selectedIndicators = indicators
-                    .sort(() => 0.5 - Math.random())
-                    .slice(0, 4);
-                
-                return `Análise Técnica ${symbol}:\n` +
-                       `• ${selectedIndicators[0]}\n` +
-                       `• ${selectedIndicators[1]}\n` +
-                       `• ${selectedIndicators[2]}\n` +
-                       `• ${selectedIndicators[3]}\n\n` +
-                       `Estratégia: ${type === 'LONG' ? 'Compra' : 'Venda'} com alvo +${gain}%`;
+                });
             }
 
             function displayResults(data) {
@@ -435,16 +498,17 @@
                         resultsContainer.appendChild(card);
                     });
 
+                    // Show analysis info
                     analysisInfo.innerHTML = `
                         <p><strong>Análise completa:</strong> ${data.total_analyzed} criptomoedas analisadas</p>
-                        <p><strong>Timestamp:</strong> ${data.timestamp}</p>
+                        <p><strong>Timestamp:</strong> ${new Date(data.timestamp).toLocaleString('pt-BR')}</p>
                         <p><strong>Melhores oportunidades:</strong> Top ${data.results.length} selecionadas</p>
-                        <p><em>💡 Esta é uma demonstração estática. Em produção, os dados viriam de análise em tempo real.</em></p>
+                        <p><em>💡 Análise técnica em tempo real com dados reais do mercado</em></p>
                     `;
 
                     resultsSection.style.display = 'block';
                 } else {
-                    displayError('Nenhuma oportunidade de trading encontrada no momento.');
+                    displayError('Nenhuma oportunidade de trading encontrada no momento. Tente novamente mais tarde.');
                 }
             }
 
@@ -455,14 +519,35 @@
                 const signalTypeClass = result.type === 'LONG' ? 'signal-long' : 'signal-short';
                 const emoji = result.type === 'LONG' ? '🔼' : '🔽';
                 
+                const priceChangeClass = result.price_change_24h >= 0 ? 'positive' : 'negative';
+                const priceChangeSymbol = result.price_change_24h >= 0 ? '+' : '';
+                
+                const confidencePercentage = Math.round(result.score * 100);
+                
                 card.innerHTML = `
                     <div class="card-header">
                         <div class="crypto-symbol">#${rank} ${result.symbol}/USDT</div>
                         <div class="signal-type ${signalTypeClass}">${emoji} ${result.type}</div>
                     </div>
+                    
+                    <div class="price-info">
+                        <span class="current-price">$${result.current_price.toFixed(4)}</span>
+                        <span class="price-change ${priceChangeClass}">
+                            ${priceChangeSymbol}${result.price_change_24h.toFixed(2)}%
+                        </span>
+                    </div>
+                    
                     <div class="potential-gain">
                         Potencial: +${result.potential_gain}%
                     </div>
+                    
+                    <div class="confidence-score">
+                        <span class="confidence-text">${confidencePercentage}%</span>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: ${confidencePercentage}%"></div>
+                        </div>
+                    </div>
+                    
                     <div class="trade-details">${result.signal}</div>
                 `;
                 
@@ -474,6 +559,7 @@
                 errorSection.style.display = 'block';
             }
 
+            // Add some visual feedback for button interactions
             searchBtn.addEventListener('mouseenter', function() {
                 if (!this.disabled) {
                     this.style.transform = 'translateY(-2px)';
@@ -487,6 +573,7 @@
             });
         });
 
+        // Add a subtle parallax effect to the background
         document.addEventListener('mousemove', function(e) {
             const moveX = (e.clientX * -1 / 150);
             const moveY = (e.clientY * -1 / 150);
@@ -494,6 +581,7 @@
             document.body.style.backgroundPosition = `${moveX}px ${moveY}px`;
         });
 
+        // Add keyboard shortcut (Space or Enter) to trigger search
         document.addEventListener('keydown', function(e) {
             if ((e.code === 'Space' || e.code === 'Enter') && !document.getElementById('searchBtn').disabled) {
                 e.preventDefault();

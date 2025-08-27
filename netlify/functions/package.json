@@ -1,0 +1,22 @@
+{
+  "name": "crypto-analyzer-function",
+  "version": "1.0.0",
+  "description": "Netlify Function para análise técnica de criptomoedas em tempo real",
+  "main": "analyze-crypto.js",
+  "dependencies": {
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "crypto",
+    "trading",
+    "analysis",
+    "netlify",
+    "function"
+  ],
+  "author": "CryptoPulse Team",
+  "license": "MIT"
+}

@@ -1,6 +1,7 @@
 [build]
   publish = "."
-  command = "echo 'Build completed - using crypto-analyzer.html'"
+  command = "echo 'Build completed - Real-time crypto analysis ready'"
+  functions = "netlify/functions"
 
 [[redirects]]
   from = "/"
@@ -14,3 +15,7 @@
 
 [build.environment]
   NODE_VERSION = "18"
+
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["axios"]
