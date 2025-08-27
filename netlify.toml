@@ -1,2 +1,11 @@
 [build]
-  publish = "templates"
+  publish = "."
+  command = "bash netlify-build.sh"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[build.environment]
+  NODE_VERSION = "18"

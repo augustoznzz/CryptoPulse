@@ -1,11 +1,25 @@
 {
-  "name": "crypto-pulse",
+  "name": "crypto-pulse-static",
   "version": "1.0.0",
-  "description": "Configuration file to deploy CryptoPulse on hosting platforms like Netlify",
+  "description": "Crypto Trading Analyzer - Versão Estática para Netlify",
   "scripts": {
-    "start": "python start_server.py",
-    "build": "echo Build step not required for Python app",
-    "test": "pytest"
+    "build": "echo 'Build completed - static site ready for Netlify'",
+    "test": "echo 'No tests required for static site'",
+    "start": "echo 'Open index.html in your browser to preview'"
+  },
+  "keywords": [
+    "crypto",
+    "trading",
+    "analyzer",
+    "static",
+    "netlify",
+    "demo"
+  ],
+  "author": "CryptoPulse Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/CryptoPulse.git"
   }
 }
 

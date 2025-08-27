@@ -1,4 +1,4 @@
-// Crypto Trading Analyzer - Frontend JavaScript
+// Crypto Trading Analyzer - Frontend JavaScript (Versão Estática para Netlify)
 
 document.addEventListener('DOMContentLoaded', function() {
     const searchBtn = document.getElementById('searchBtn');
@@ -24,49 +24,74 @@ document.addEventListener('DOMContentLoaded', function() {
         resultsSection.style.display = 'none';
         errorSection.style.display = 'none';
 
-        // Make API call with longer timeout
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 minutes timeout
-        
-        fetch('/api/search-trades', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            signal: controller.signal
-        })
-        .then(response => {
-            clearTimeout(timeoutId);
-            if (!response.ok) {
-                const statusText = response.statusText ? `: ${response.statusText}` : '';
-                throw new Error(`HTTP ${response.status}${statusText}`);
-            }
-            return response.json();
-        })
-        .then(data => {
-            if (data.success) {
-                displayResults(data);
-            } else {
-                displayError(data.error || 'Erro desconhecido na análise');
-            }
-        })
-        .catch(error => {
-            clearTimeout(timeoutId);
-            console.error('Error:', error);
-            if (error.name === 'AbortError') {
-                displayError('Análise demorou muito tempo. Tente novamente.');
-            } else if (error.message.includes('HTTP')) {
-                displayError(`Erro do servidor: ${error.message}`);
-            } else {
-                displayError('Erro de conexão. Tente novamente.');
-            }
-        })
-        .finally(() => {
+        // Simulate API call delay for demo purposes
+        setTimeout(() => {
+            // Generate demo data
+            const demoData = generateDemoData();
+            displayResults(demoData);
+            
             // Re-enable button
             searchBtn.disabled = false;
             buttonText.style.opacity = '1';
             loadingSpinner.style.display = 'none';
-        });
+        }, 2000); // 2 second delay to simulate processing
+    }
+
+    function generateDemoData() {
+        const cryptoList = ['BTC', 'ETH', 'BNB', 'ADA', 'SOL', 'DOT', 'AVAX', 'MATIC', 'LINK', 'UNI'];
+        const results = [];
+        
+        // Generate 3-5 random results
+        const numResults = Math.floor(Math.random() * 3) + 3;
+        
+        for (let i = 0; i < numResults; i++) {
+            const symbol = cryptoList[Math.floor(Math.random() * cryptoList.length)];
+            const type = Math.random() > 0.5 ? 'LONG' : 'SHORT';
+            const potentialGain = (Math.random() * 15 + 5).toFixed(1);
+            
+            const signal = generateSignalText(symbol, type, potentialGain);
+            
+            results.push({
+                symbol: symbol,
+                type: type,
+                potential_gain: potentialGain,
+                signal: signal
+            });
+        }
+        
+        // Sort by potential gain
+        results.sort((a, b) => parseFloat(b.potential_gain) - parseFloat(a.potential_gain));
+        
+        return {
+            success: true,
+            results: results,
+            total_analyzed: 50,
+            timestamp: new Date().toLocaleString('pt-BR')
+        };
+    }
+
+    function generateSignalText(symbol, type, gain) {
+        const indicators = [
+            'RSI: Sobrecomprado (70+)',
+            'MACD: Cruzamento de alta',
+            'Média Móvel: Preço acima da MA200',
+            'Volume: Aumento de 25%',
+            'Suporte: Testado e mantido',
+            'Resistência: Próximo breakout',
+            'Momentum: Forte tendência de alta',
+            'Divergência: RSI vs Preço'
+        ];
+        
+        const selectedIndicators = indicators
+            .sort(() => 0.5 - Math.random())
+            .slice(0, 4);
+        
+        return `Análise Técnica ${symbol}:\n` +
+               `• ${selectedIndicators[0]}\n` +
+               `• ${selectedIndicators[1]}\n` +
+               `• ${selectedIndicators[2]}\n` +
+               `• ${selectedIndicators[3]}\n\n` +
+               `Estratégia: ${type === 'LONG' ? 'Compra' : 'Venda'} com alvo +${gain}%`;
     }
 
     function displayResults(data) {
@@ -83,6 +108,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 <p><strong>Análise completa:</strong> ${data.total_analyzed} criptomoedas analisadas</p>
                 <p><strong>Timestamp:</strong> ${data.timestamp}</p>
                 <p><strong>Melhores oportunidades:</strong> Top ${data.results.length} selecionadas</p>
+                <p><em>💡 Esta é uma demonstração estática. Em produção, os dados viriam de análise em tempo real.</em></p>
             `;
 
             resultsSection.style.display = 'block';

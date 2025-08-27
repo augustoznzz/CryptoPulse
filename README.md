@@ -2,6 +2,22 @@
 
 Um software completo de análise técnica de criptomoedas que gera sinais de trading precisos com pontos de entrada, alvos de lucro e stop-losses baseados em análise multi-timeframe.
 
+## 🌐 Versões do Projeto
+
+### 🚀 Versão Estática para Netlify (Recomendada para Demonstração)
+- **Arquivo principal**: `index.html` (na raiz)
+- **Funcionalidade**: Interface completa com dados simulados
+- **Deploy**: Funciona perfeitamente na Netlify
+- **Uso**: Demonstração da funcionalidade sem backend
+
+### 🔧 Versão Completa com Backend Python
+- **Arquivo principal**: `app.py`, `main.py`
+- **Funcionalidade**: Análise real de criptomoedas
+- **Deploy**: Plataformas que suportam Python (Heroku, Railway, Render)
+- **Uso**: Análise em tempo real com APIs
+
+**💡 Para deploy na Netlify, use a versão estática!**
+
 ## 🚀 Características
 
 - **Análise Multi-Timeframe**: Analisa dados de 1h, 4h e 1d para decisões mais precisas
