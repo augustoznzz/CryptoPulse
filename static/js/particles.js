@@ -6,7 +6,7 @@ class AdvancedParticlesSystem {
     this.canvas = canvas;
     this.ctx = canvas.getContext('2d');
     this.circles = [];
-    this.quantity = 100;
+    this.quantity = 120;
     this.staticity = 50;
     this.ease = 50;
     this.size = 0.4;

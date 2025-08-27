@@ -30,16 +30,36 @@ exports.handler = async (event, context) => {
     
     let targetCoins;
     let source = 'API';
+    let retryCount = 0;
+    const maxRetries = 3;
     
-    try {
-      // Tentar obter dados da API
-      targetCoins = await getTargetCryptocurrencies();
-      console.log(`Cryptocurrencies obtained from API: ${targetCoins.length}`);
-    } catch (apiError) {
-      console.log('API failed, using fallback data:', apiError.message);
-      // Usar dados de fallback se a API falhar
-      targetCoins = getFallbackData();
-      source = 'Fallback';
+    // Tentar obter dados da API com retry logic
+    while (retryCount < maxRetries) {
+      try {
+        console.log(`Attempt ${retryCount + 1} to fetch data from CoinGecko API...`);
+        targetCoins = await getTargetCryptocurrencies();
+        
+        if (targetCoins && targetCoins.length > 0) {
+          console.log(`✅ Success! Cryptocurrencies obtained from API: ${targetCoins.length}`);
+          console.log(`Sample real data - BTC price: $${targetCoins.find(c => c.symbol === 'BTC')?.current_price}`);
+          source = 'Real-Time API';
+          break; // Sucesso, sair do loop
+        } else {
+          throw new Error('API returned empty data');
+        }
+      } catch (apiError) {
+        retryCount++;
+        console.log(`❌ API attempt ${retryCount} failed:`, apiError.message);
+        
+        if (retryCount >= maxRetries) {
+          console.log('🚨 All API attempts failed, using fallback data');
+          targetCoins = getFallbackData();
+          source = 'Fallback (API failed)';
+        } else {
+          console.log(`⏳ Waiting 2 seconds before retry ${retryCount + 1}...`);
+          await new Promise(resolve => setTimeout(resolve, 2000)); // Esperar 2 segundos
+        }
+      }
     }
     
     if (targetCoins.length === 0) {
@@ -59,7 +79,8 @@ exports.handler = async (event, context) => {
         total_analyzed: targetCoins.length,
         timestamp: new Date().toISOString().split('T')[0],
         message: `Technical analysis of selected cryptocurrencies completed (${source})`,
-        data_source: source
+        data_source: source,
+        api_attempts: retryCount
       })
     };
   } catch (error) {
@@ -84,66 +105,111 @@ function getFallbackData() {
       id: 'bitcoin',
       symbol: 'BTC',
       name: 'Bitcoin',
-      current_price: 85000 + Math.random() * 20000, // $85k - $105k
-      market_cap: 1600000000000 + Math.random() * 200000000000, // $1.6T - $1.8T
-      price_change_24h: (Math.random() - 0.5) * 8000, // ±$4k variation
-      price_change_percentage_24h: (Math.random() - 0.5) * 8, // ±4% variation
-      volume_24h: 30000000000 + Math.random() * 20000000000 // $30B - $50B
+      current_price: 95000 + Math.random() * 10000, // $95k - $105k (mais realista)
+      market_cap: 1800000000000 + Math.random() * 200000000000, // $1.8T - $2.0T
+      price_change_24h: (Math.random() - 0.5) * 6000, // ±$3k variation
+      price_change_percentage_24h: (Math.random() - 0.5) * 6, // ±3% variation
+      volume_24h: 35000000000 + Math.random() * 15000000000 // $35B - $50B
     },
     {
       id: 'ethereum',
       symbol: 'ETH',
       name: 'Ethereum',
-      current_price: 4500 + Math.random() * 1000, // $4.5k - $5.5k
-      market_cap: 500000000000 + Math.random() * 100000000000, // $500B - $600B
-      price_change_24h: (Math.random() - 0.5) * 400, // ±$200 variation
-      price_change_percentage_24h: (Math.random() - 0.5) * 6, // ±3% variation
-      volume_24h: 20000000000 + Math.random() * 10000000000 // $20B - $30B
+      current_price: 5200 + Math.random() * 800, // $5.2k - $6.0k (mais realista)
+      market_cap: 600000000000 + Math.random() * 100000000000, // $600B - $700B
+      price_change_24h: (Math.random() - 0.5) * 300, // ±$150 variation
+      price_change_percentage_24h: (Math.random() - 0.5) * 5, // ±2.5% variation
+      volume_24h: 25000000000 + Math.random() * 10000000000 // $25B - $35B
     },
     {
       id: 'ripple',
       symbol: 'XRP',
       name: 'XRP',
-      current_price: 0.8 + Math.random() * 0.4, // $0.8 - $1.2
-      market_cap: 40000000000 + Math.random() * 20000000000, // $40B - $60B
-      price_change_24h: (Math.random() - 0.5) * 0.2, // ±$0.1 variation
-      price_change_percentage_24h: (Math.random() - 0.5) * 5, // ±2.5% variation
-      volume_24h: 3000000000 + Math.random() * 2000000000 // $3B - $5B
+      current_price: 0.95 + Math.random() * 0.3, // $0.95 - $1.25 (mais realista)
+      market_cap: 50000000000 + Math.random() * 20000000000, // $50B - $70B
+      price_change_24h: (Math.random() - 0.5) * 0.15, // ±$0.075 variation
+      price_change_percentage_24h: (Math.random() - 0.5) * 4, // ±2% variation
+      volume_24h: 4000000000 + Math.random() * 2000000000 // $4B - $6B
     },
     {
       id: 'binancecoin',
       symbol: 'BNB',
       name: 'BNB',
-      current_price: 600 + Math.random() * 100, // $600 - $700
-      market_cap: 90000000000 + Math.random() * 20000000000, // $90B - $110B
-      price_change_24h: (Math.random() - 0.5) * 60, // ±$30 variation
+      current_price: 650 + Math.random() * 100, // $650 - $750 (mais realista)
+      market_cap: 100000000000 + Math.random() * 20000000000, // $100B - $120B
+      price_change_24h: (Math.random() - 0.5) * 50, // ±$25 variation
       price_change_percentage_24h: (Math.random() - 0.5) * 4, // ±2% variation
-      volume_24h: 5000000000 + Math.random() * 3000000000 // $5B - $8B
+      volume_24h: 6000000000 + Math.random() * 3000000000 // $6B - $9B
     },
     {
       id: 'solana',
       symbol: 'SOL',
       name: 'Solana',
-      current_price: 180 + Math.random() * 40, // $180 - $220
-      market_cap: 70000000000 + Math.random() * 20000000000, // $70B - $90B
+      current_price: 200 + Math.random() * 40, // $200 - $240 (mais realista)
+      market_cap: 80000000000 + Math.random() * 20000000000, // $80B - $100B
       price_change_24h: (Math.random() - 0.5) * 20, // ±$10 variation
-      price_change_percentage_24h: (Math.random() - 0.5) * 7, // ±3.5% variation
-      volume_24h: 4000000000 + Math.random() * 2000000000 // $4B - $6B
+      price_change_percentage_24h: (Math.random() - 0.5) * 6, // ±3% variation
+      volume_24h: 5000000000 + Math.random() * 2000000000 // $5B - $7B
+    },
+    {
+      id: 'cardano',
+      symbol: 'ADA',
+      name: 'Cardano',
+      current_price: 0.65 + Math.random() * 0.15, // $0.65 - $0.80 (mais realista)
+      market_cap: 25000000000 + Math.random() * 10000000000, // $25B - $35B
+      price_change_24h: (Math.random() - 0.5) * 0.1, // ±$0.05 variation
+      price_change_percentage_24h: (Math.random() - 0.5) * 5, // ±2.5% variation
+      volume_24h: 2000000000 + Math.random() * 1000000000 // $2B - $3B
+    },
+    {
+      id: 'polkadot',
+      symbol: 'DOT',
+      name: 'Polkadot',
+      current_price: 8.5 + Math.random() * 1.5, // $8.5 - $10.0 (mais realista)
+      market_cap: 12000000000 + Math.random() * 5000000000, // $12B - $17B
+      price_change_24h: (Math.random() - 0.5) * 0.8, // ±$0.4 variation
+      price_change_percentage_24h: (Math.random() - 0.5) * 4, // ±2% variation
+      volume_24h: 1500000000 + Math.random() * 800000000 // $1.5B - $2.3B
+    },
+    {
+      id: 'chainlink',
+      symbol: 'LINK',
+      name: 'Chainlink',
+      current_price: 18.5 + Math.random() * 3, // $18.5 - $21.5 (mais realista)
+      market_cap: 11000000000 + Math.random() * 4000000000, // $11B - $15B
+      price_change_24h: (Math.random() - 0.5) * 1.5, // ±$0.75 variation
+      price_change_percentage_24h: (Math.random() - 0.5) * 5, // ±2.5% variation
+      volume_24h: 1200000000 + Math.random() * 600000000 // $1.2B - $1.8B
     }
   ];
   
-  console.log(`Fallback data generated: ${fallbackCoins.length} cryptocurrencies`);
+  console.log(`🔄 Fallback data generated: ${fallbackCoins.length} cryptocurrencies`);
+  console.log(`⚠️  Note: These are simulated values. Real-time data is preferred.`);
   return fallbackCoins;
 }
 
 // Obter dados das criptomoedas específicas
 function getTargetCryptocurrencies() {
   return new Promise((resolve, reject) => {
-    // Buscar diretamente as criptomoedas específicas
+    // Primeiro tentar CoinGecko, se falhar, tentar CoinCap
+    tryCoinGecko()
+      .then(resolve)
+      .catch(() => {
+        console.log('🔄 CoinGecko failed, trying CoinCap API...');
+        return tryCoinCap();
+      })
+      .then(resolve)
+      .catch(reject);
+  });
+}
+
+// Tentar API CoinGecko
+function tryCoinGecko() {
+  return new Promise((resolve, reject) => {
     const coinIds = TARGET_CRYPTOCURRENCIES.join(',');
     const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${coinIds}&order=market_cap_desc&sparkline=false&price_change_percentage=24h`;
     
-    console.log('Making request to CoinGecko API...');
+    console.log('🔍 Trying CoinGecko API...');
     
     const req = https.get(url, (res) => {
       let data = '';
@@ -154,20 +220,16 @@ function getTargetCryptocurrencies() {
       
       res.on('end', () => {
         try {
-          console.log(`API Response: ${res.statusCode} ${res.statusMessage}`);
-          
           if (res.statusCode !== 200) {
-            reject(new Error(`HTTP ${res.statusCode}: ${res.statusMessage}`));
+            reject(new Error(`CoinGecko HTTP ${res.statusCode}`));
             return;
           }
           
           const jsonData = JSON.parse(data);
-          console.log(`Data received: ${jsonData.length} cryptocurrencies`);
-
-                      if (jsonData.length === 0) {
-              reject(new Error('No cryptocurrencies found in API'));
-              return;
-            }
+          if (jsonData.length === 0) {
+            reject(new Error('CoinGecko returned empty data'));
+            return;
+          }
 
           const result = jsonData.map(coin => ({
             id: coin.id,
@@ -180,24 +242,74 @@ function getTargetCryptocurrencies() {
             volume_24h: coin.total_volume
           }));
           
-          console.log(`Cryptocurrencies processed: ${result.length}`);
+          console.log(`✅ CoinGecko success: ${result.length} cryptocurrencies`);
           resolve(result);
         } catch (parseError) {
-          console.error('Error parsing data:', parseError.message);
-          reject(new Error('Error processing API data'));
+          reject(new Error('CoinGecko parse error'));
         }
       });
     });
     
-    req.on('error', (err) => {
-      console.error('HTTPS request error:', err.message);
-      reject(new Error('API connection error'));
+    req.on('error', () => reject(new Error('CoinGecko connection error')));
+    req.setTimeout(8000, () => {
+      req.destroy();
+      reject(new Error('CoinGecko timeout'));
+    });
+  });
+}
+
+// Tentar API CoinCap (alternativa)
+function tryCoinCap() {
+  return new Promise((resolve, reject) => {
+    // CoinCap usa IDs diferentes, mapear para os símbolos
+    const symbols = ['bitcoin', 'ethereum', 'ripple', 'binance-coin', 'solana', 'cardano', 'polkadot', 'chainlink'];
+    const url = `https://api.coincap.io/v2/assets?ids=${symbols.join(',')}`;
+    
+    console.log('🔍 Trying CoinCap API...');
+    
+    const req = https.get(url, (res) => {
+      let data = '';
+      
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+      
+      res.on('end', () => {
+        try {
+          if (res.statusCode !== 200) {
+            reject(new Error(`CoinCap HTTP ${res.statusCode}`));
+            return;
+          }
+          
+          const jsonData = JSON.parse(data);
+          if (!jsonData.data || jsonData.data.length === 0) {
+            reject(new Error('CoinCap returned empty data'));
+            return;
+          }
+
+          const result = jsonData.data.map(coin => ({
+            id: coin.id,
+            symbol: coin.symbol.toUpperCase(),
+            name: coin.name,
+            current_price: parseFloat(coin.priceUsd),
+            market_cap: parseFloat(coin.marketCapUsd),
+            price_change_24h: parseFloat(coin.changePercent24Hr),
+            price_change_percentage_24h: parseFloat(coin.changePercent24Hr),
+            volume_24h: parseFloat(coin.volumeUsd24Hr)
+          }));
+          
+          console.log(`✅ CoinCap success: ${result.length} cryptocurrencies`);
+          resolve(result);
+        } catch (parseError) {
+          reject(new Error('CoinCap parse error'));
+        }
+      });
     });
     
-    // Timeout de 10 segundos
-    req.setTimeout(10000, () => {
+    req.on('error', () => reject(new Error('CoinCap connection error')));
+    req.setTimeout(8000, () => {
       req.destroy();
-      reject(new Error('API request timeout'));
+      reject(new Error('CoinCap timeout'));
     });
   });
 }
