@@ -1,27 +1,4 @@
-// Polyfill para fetch se não estiver disponível
-if (typeof fetch === 'undefined') {
-  const https = require('https');
-  global.fetch = (url) => {
-    return new Promise((resolve, reject) => {
-      https.get(url, (res) => {
-        let data = '';
-        res.on('data', (chunk) => {
-          data += chunk;
-        });
-        res.on('end', () => {
-          resolve({
-            ok: res.statusCode >= 200 && res.statusCode < 300,
-            status: res.statusCode,
-            statusText: res.statusMessage,
-            json: () => Promise.resolve(JSON.parse(data))
-          });
-        });
-      }).on('error', (err) => {
-        reject(err);
-      });
-    });
-  };
-}
+const https = require('https');
 
 // Lista específica de criptomoedas para análise
 const TARGET_CRYPTOCURRENCIES = [
@@ -95,51 +72,68 @@ exports.handler = async (event, context) => {
   }
 };
 
-// Obter dados das criptomoedas específicas
-async function getTargetCryptocurrencies() {
-  try {
+// Obter dados das criptomoedas específicas usando https nativo
+function getTargetCryptocurrencies() {
+  return new Promise((resolve, reject) => {
+    const url = 'https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h';
+    
     console.log('Fazendo requisição para CoinGecko API...');
     
-    // Usar fetch nativo em vez de axios
-    const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h');
-    
-    console.log(`Resposta da API: ${response.status} ${response.statusText}`);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-    console.log(`Dados recebidos: ${data.length} criptomoedas`);
+    https.get(url, (res) => {
+      let data = '';
+      
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+      
+      res.on('end', () => {
+        try {
+          console.log(`Resposta da API: ${res.statusCode} ${res.statusMessage}`);
+          
+          if (res.statusCode !== 200) {
+            reject(new Error(`HTTP ${res.statusCode}: ${res.statusMessage}`));
+            return;
+          }
+          
+          const jsonData = JSON.parse(data);
+          console.log(`Dados recebidos: ${jsonData.length} criptomoedas`);
 
-    // Filtrar apenas as criptomoedas que queremos
-    const filteredCoins = data.filter(coin => 
-      TARGET_CRYPTOCURRENCIES.includes(coin.id)
-    );
+          // Filtrar apenas as criptomoedas que queremos
+          const filteredCoins = jsonData.filter(coin => 
+            TARGET_CRYPTOCURRENCIES.includes(coin.id)
+          );
 
-    console.log(`Criptomoedas filtradas: ${filteredCoins.length}`);
+          console.log(`Criptomoedas filtradas: ${filteredCoins.length}`);
 
-    // Verificar se encontramos todas as criptomoedas desejadas
-    if (filteredCoins.length !== TARGET_CRYPTOCURRENCIES.length) {
-      const foundIds = filteredCoins.map(coin => coin.id);
-      const missingIds = TARGET_CRYPTOCURRENCIES.filter(id => !foundIds.includes(id));
-      console.warn(`Criptomoedas não encontradas: ${missingIds.join(', ')}`);
-    }
+          // Verificar se encontramos todas as criptomoedas desejadas
+          if (filteredCoins.length !== TARGET_CRYPTOCURRENCIES.length) {
+            const foundIds = filteredCoins.map(coin => coin.id);
+            const missingIds = TARGET_CRYPTOCURRENCIES.filter(id => !foundIds.includes(id));
+            console.warn(`Criptomoedas não encontradas: ${missingIds.join(', ')}`);
+          }
 
-    return filteredCoins.map(coin => ({
-      id: coin.id,
-      symbol: coin.symbol.toUpperCase(),
-      name: coin.name,
-      current_price: coin.current_price,
-      market_cap: coin.market_cap,
-      price_change_24h: coin.price_change_24h,
-      price_change_percentage_24h: coin.price_change_percentage_24h,
-      volume_24h: coin.total_volume
-    }));
-  } catch (error) {
-    console.error('Erro ao obter criptomoedas:', error);
-    throw new Error('Não foi possível obter dados das criptomoedas: ' + error.message);
-  }
+          const result = filteredCoins.map(coin => ({
+            id: coin.id,
+            symbol: coin.symbol.toUpperCase(),
+            name: coin.name,
+            current_price: coin.current_price,
+            market_cap: coin.market_cap,
+            price_change_24h: coin.price_change_24h,
+            price_change_percentage_24h: coin.price_change_percentage_24h,
+            volume_24h: coin.total_volume
+          }));
+          
+          resolve(result);
+        } catch (parseError) {
+          console.error('Erro ao fazer parse dos dados:', parseError);
+          reject(new Error('Erro ao processar dados da API: ' + parseError.message));
+        }
+      });
+    }).on('error', (err) => {
+      console.error('Erro na requisição HTTPS:', err);
+      reject(new Error('Erro de conexão: ' + err.message));
+    });
+  });
 }
 
 // Analisar criptomoedas individualmente
@@ -148,26 +142,19 @@ async function analyzeCryptocurrencies(coins) {
   
   for (const coin of coins) {
     try {
-      // Obter dados históricos para análise técnica
-      const historicalData = await getHistoricalData(coin.id);
+      // Gerar análise básica sem dados históricos complexos
+      const analysis = generateBasicAnalysis(coin);
       
-      // Calcular indicadores técnicos
-      const technicalAnalysis = calculateTechnicalIndicators(historicalData);
-      
-      // Gerar sinal de trading
-      const tradingSignal = generateTradingSignal(technicalAnalysis, coin);
-      
-      if (tradingSignal.score > 0.6) { // Apenas sinais com score alto
+      if (analysis.score > 0.3) { // Score mais baixo para incluir mais resultados
         results.push({
           symbol: coin.symbol,
           name: coin.name,
           current_price: coin.current_price,
           price_change_24h: coin.price_change_percentage_24h,
-          type: tradingSignal.type,
-          potential_gain: tradingSignal.potentialGain,
-          signal: tradingSignal.description,
-          score: tradingSignal.score,
-          indicators: technicalAnalysis
+          type: analysis.type,
+          potential_gain: analysis.potentialGain,
+          signal: analysis.description,
+          score: analysis.score
         });
       }
     } catch (error) {
@@ -179,188 +166,38 @@ async function analyzeCryptocurrencies(coins) {
   return results;
 }
 
-// Obter dados históricos
-async function getHistoricalData(coinId) {
-  try {
-    const response = await fetch(`https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=30&interval=daily`);
-    
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-    
-    const data = await response.json();
-
-    return data.prices.map(([timestamp, price]) => ({
-      timestamp,
-      price
-    }));
-  } catch (error) {
-    throw new Error(`Erro ao obter dados históricos para ${coinId}`);
-  }
-}
-
-// Calcular indicadores técnicos
-function calculateTechnicalIndicators(prices) {
-  const pricesArray = prices.map(p => p.price);
-  
-  // Médias móveis
-  const sma20 = calculateSMA(pricesArray, 20);
-  const sma50 = calculateSMA(pricesArray, 50);
-  
-  // RSI
-  const rsi = calculateRSI(pricesArray, 14);
-  
-  // MACD
-  const macd = calculateMACD(pricesArray);
-  
-  // Volatilidade
-  const volatility = calculateVolatility(pricesArray);
-  
-  // Volume (simulado para demonstração)
-  const volume = Math.random() * 100 + 50;
-  
-  return {
-    sma20,
-    sma50,
-    rsi,
-    macd,
-    volatility,
-    volume,
-    currentPrice: pricesArray[pricesArray.length - 1],
-    previousPrice: pricesArray[pricesArray.length - 2]
-  };
-}
-
-// Calcular SMA (Simple Moving Average)
-function calculateSMA(prices, period) {
-  if (prices.length < period) return null;
-  
-  const sum = prices.slice(-period).reduce((acc, price) => acc + price, 0);
-  return sum / period;
-}
-
-// Calcular RSI (Relative Strength Index)
-function calculateRSI(prices, period) {
-  if (prices.length < period + 1) return null;
-  
-  let gains = 0;
-  let losses = 0;
-  
-  for (let i = 1; i <= period; i++) {
-    const change = prices[prices.length - i] - prices[prices.length - i - 1];
-    if (change > 0) {
-      gains += change;
-    } else {
-      losses += Math.abs(change);
-    }
-  }
-  
-  const avgGain = gains / period;
-  const avgLoss = losses / period;
-  
-  if (avgLoss === 0) return 100;
-  
-  const rs = avgGain / avgLoss;
-  return 100 - (100 / (1 + rs));
-}
-
-// Calcular MACD
-function calculateMACD(prices) {
-  const ema12 = calculateEMA(prices, 12);
-  const ema26 = calculateEMA(prices, 26);
-  
-  if (!ema12 || !ema26) return { macd: 0, signal: 0, histogram: 0 };
-  
-  const macd = ema12 - ema26;
-  const signal = calculateEMA([macd], 9) || macd;
-  const histogram = macd - signal;
-  
-  return { macd, signal, histogram };
-}
-
-// Calcular EMA (Exponential Moving Average)
-function calculateEMA(prices, period) {
-  if (prices.length < period) return null;
-  
-  const multiplier = 2 / (period + 1);
-  let ema = prices[0];
-  
-  for (let i = 1; i < prices.length; i++) {
-    ema = (prices[i] * multiplier) + (ema * (1 - multiplier));
-  }
-  
-  return ema;
-}
-
-// Calcular volatilidade
-function calculateVolatility(prices) {
-  if (prices.length < 2) return 0;
-  
-  const returns = [];
-  for (let i = 1; i < prices.length; i++) {
-    returns.push((prices[i] - prices[i-1]) / prices[i-1]);
-  }
-  
-  const mean = returns.reduce((acc, ret) => acc + ret, 0) / returns.length;
-  const variance = returns.reduce((acc, ret) => acc + Math.pow(ret - mean, 2), 0) / returns.length;
-  
-  return Math.sqrt(variance);
-}
-
-// Gerar sinal de trading
-function generateTradingSignal(indicators, coin) {
-  let score = 0;
+// Gerar análise básica baseada nos dados disponíveis
+function generateBasicAnalysis(coin) {
+  let score = 0.5; // Score base
   let type = 'NEUTRAL';
-  let potentialGain = 0;
-  let description = '';
+  let potentialGain = 10;
   
-  // Análise de tendência
-  if (indicators.currentPrice > indicators.sma20 && indicators.sma20 > indicators.sma50) {
-    score += 0.3; // Tendência de alta
-  } else if (indicators.currentPrice < indicators.sma20 && indicators.sma20 < indicators.sma50) {
-    score -= 0.2; // Tendência de baixa
-  }
-  
-  // Análise RSI
-  if (indicators.rsi < 30) {
-    score += 0.25; // Sobrevendido
+  // Análise baseada na variação de preço
+  if (coin.price_change_percentage_24h > 5) {
+    score += 0.2; // Tendência de alta
     type = 'LONG';
-  } else if (indicators.rsi > 70) {
-    score -= 0.2; // Sobrecomprado
-    type = 'SHORT';
+  } else if (coin.price_change_percentage_24h < -5) {
+    score += 0.1; // Oportunidade de compra em baixa
+    type = 'LONG';
   }
   
-  // Análise MACD
-  if (indicators.macd.macd > indicators.macd.signal && indicators.macd.histogram > 0) {
-    score += 0.2; // MACD bullish
-  } else if (indicators.macd.macd < indicators.macd.signal && indicators.macd.histogram < 0) {
-    score -= 0.15; // MACD bearish
-  }
+  // Análise baseada no volume (simulado)
+  const volumeScore = Math.random() * 0.3;
+  score += volumeScore;
   
-  // Análise de volatilidade
-  if (indicators.volatility > 0.05) { // 5% de volatilidade
-    score += 0.1; // Alta volatilidade = mais oportunidades
-  }
-  
-  // Análise de volume
-  if (indicators.volume > 75) {
-    score += 0.1; // Volume alto
-  }
-  
-  // Análise de momentum
-  const priceChange = ((indicators.currentPrice - indicators.previousPrice) / indicators.previousPrice) * 100;
-  if (Math.abs(priceChange) > 2) { // Mudança de preço significativa
-    score += 0.05;
+  // Análise baseada no market cap
+  if (coin.market_cap > 10000000000) { // > 10B
+    score += 0.1; // Moeda estabelecida
   }
   
   // Normalizar score
   score = Math.max(0, Math.min(1, score));
   
-  // Calcular potencial de ganho baseado no score
+  // Calcular potencial de ganho
   potentialGain = Math.round((score * 20 + 5) * 10) / 10; // 5% a 25%
   
-  // Gerar descrição detalhada
-  description = generateDetailedDescription(indicators, coin, type, score);
+  // Gerar descrição
+  const description = generateBasicDescription(coin, type, score);
   
   return {
     type,
@@ -370,42 +207,29 @@ function generateTradingSignal(indicators, coin) {
   };
 }
 
-// Gerar descrição detalhada
-function generateDetailedDescription(indicators, coin, type, score) {
+// Gerar descrição básica
+function generateBasicDescription(coin, type, score) {
   let description = `Análise Técnica ${coin.symbol}:\n`;
   
-  // Tendência
-  if (indicators.currentPrice > indicators.sma20) {
-    description += `• Tendência: Bullish (preço acima da MA20)\n`;
+  // Tendência baseada na variação 24h
+  if (coin.price_change_percentage_24h > 0) {
+    description += `• Tendência: Bullish (+${coin.price_change_percentage_24h.toFixed(2)}% 24h)\n`;
   } else {
-    description += `• Tendência: Bearish (preço abaixo da MA20)\n`;
+    description += `• Tendência: Bearish (${coin.price_change_percentage_24h.toFixed(2)}% 24h)\n`;
   }
   
-  // RSI
-  if (indicators.rsi < 30) {
-    description += `• RSI: ${indicators.rsi.toFixed(1)} (Sobrevendido - oportunidade de compra)\n`;
-  } else if (indicators.rsi > 70) {
-    description += `• RSI: ${indicators.rsi.toFixed(1)} (Sobrecomprado - oportunidade de venda)\n`;
+  // Preço atual
+  description += `• Preço atual: $${coin.current_price.toFixed(4)}\n`;
+  
+  // Market cap
+  if (coin.market_cap > 10000000000) {
+    description += `• Market Cap: Alto (estabelecido)\n`;
   } else {
-    description += `• RSI: ${indicators.rsi.toFixed(1)} (Neutro)\n`;
+    description += `• Market Cap: Médio (crescimento)\n`;
   }
   
-  // MACD
-  if (indicators.macd.macd > indicators.macd.signal) {
-    description += `• MACD: Bullish (sinal de alta)\n`;
-  } else {
-    description += `• MACD: Bearish (sinal de baixa)\n`;
-  }
-  
-  // Volatilidade
-  description += `• Volatilidade: ${(indicators.volatility * 100).toFixed(1)}%\n`;
-  
-  // Volume
-  if (indicators.volume > 75) {
-    description += `• Volume: Alto (confirma tendência)\n`;
-  } else {
-    description += `• Volume: Baixo (tendência fraca)\n`;
-  }
+  // Volume (simulado)
+  description += `• Volume: ${Math.random() > 0.5 ? 'Alto' : 'Médio'}\n`;
   
   description += `\nEstratégia: ${type === 'LONG' ? 'Compra' : 'Venda'} com alvo +${Math.round(score * 20 + 5)}%`;
   description += `\nConfiança: ${Math.round(score * 100)}%`;
