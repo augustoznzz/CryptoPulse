@@ -1,4 +1,4 @@
-// Crypto Trading Analyzer - Frontend JavaScript (Versão Estática para Netlify)
+// Crypto Trading Analyzer - Frontend JavaScript (Análise das 16 Criptomoedas Selecionadas)
 
 document.addEventListener('DOMContentLoaded', function() {
     const searchBtn = document.getElementById('searchBtn');
@@ -24,75 +24,43 @@ document.addEventListener('DOMContentLoaded', function() {
         resultsSection.style.display = 'none';
         errorSection.style.display = 'none';
 
-        // Simulate API call delay for demo purposes
-        setTimeout(() => {
-            // Generate demo data
-            const demoData = generateDemoData();
-            displayResults(demoData);
-            
+        // Chamar função real da Netlify para análise das criptomoedas selecionadas
+        fetch('/.netlify/functions/analyze-crypto', {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            if (data.success) {
+                displayResults(data);
+            } else {
+                displayError(data.error || 'Erro desconhecido na análise');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            if (error.message.includes('HTTP')) {
+                displayError(`Erro do servidor: ${error.message}`);
+            } else {
+                displayError('Erro de conexão. Verifique sua internet e tente novamente.');
+            }
+        })
+        .finally(() => {
             // Re-enable button
             searchBtn.disabled = false;
             buttonText.style.opacity = '1';
             loadingSpinner.style.display = 'none';
-        }, 2000); // 2 second delay to simulate processing
+        });
     }
 
-    function generateDemoData() {
-        const cryptoList = ['BTC', 'ETH', 'BNB', 'ADA', 'SOL', 'DOT', 'AVAX', 'MATIC', 'LINK', 'UNI'];
-        const results = [];
-        
-        // Generate 3-5 random results
-        const numResults = Math.floor(Math.random() * 3) + 3;
-        
-        for (let i = 0; i < numResults; i++) {
-            const symbol = cryptoList[Math.floor(Math.random() * cryptoList.length)];
-            const type = Math.random() > 0.5 ? 'LONG' : 'SHORT';
-            const potentialGain = (Math.random() * 15 + 5).toFixed(1);
-            
-            const signal = generateSignalText(symbol, type, potentialGain);
-            
-            results.push({
-                symbol: symbol,
-                type: type,
-                potential_gain: potentialGain,
-                signal: signal
-            });
-        }
-        
-        // Sort by potential gain
-        results.sort((a, b) => parseFloat(b.potential_gain) - parseFloat(a.potential_gain));
-        
-        return {
-            success: true,
-            results: results,
-            total_analyzed: 50,
-            timestamp: new Date().toLocaleString('pt-BR')
-        };
-    }
-
-    function generateSignalText(symbol, type, gain) {
-        const indicators = [
-            'RSI: Sobrecomprado (70+)',
-            'MACD: Cruzamento de alta',
-            'Média Móvel: Preço acima da MA200',
-            'Volume: Aumento de 25%',
-            'Suporte: Testado e mantido',
-            'Resistência: Próximo breakout',
-            'Momentum: Forte tendência de alta',
-            'Divergência: RSI vs Preço'
-        ];
-        
-        const selectedIndicators = indicators
-            .sort(() => 0.5 - Math.random())
-            .slice(0, 4);
-        
-        return `Análise Técnica ${symbol}:\n` +
-               `• ${selectedIndicators[0]}\n` +
-               `• ${selectedIndicators[1]}\n` +
-               `• ${selectedIndicators[2]}\n` +
-               `• ${selectedIndicators[3]}\n\n` +
-               `Estratégia: ${type === 'LONG' ? 'Compra' : 'Venda'} com alvo +${gain}%`;
-    }
+    // Funções demo removidas - agora usando análise real da Netlify
 
     function displayResults(data) {
         resultsContainer.innerHTML = '';
@@ -122,16 +90,38 @@ document.addEventListener('DOMContentLoaded', function() {
         card.className = 'trade-card';
         
         const signalTypeClass = result.type === 'LONG' ? 'signal-long' : 'signal-short';
-        const emoji = result.type === 'LONG' ? '🔼' : '🔽';
+        const emoji = result.type === 'LONG' ? '🔼' : '��';
+        
+        // Adicionar informações de preço e variação se disponíveis
+        const priceInfo = result.current_price ? `
+            <div style="margin-bottom: 1rem; font-size: 0.9rem; color: #a0a0a0;">
+                <span style="color: #ffffff; font-weight: 600;">$${result.current_price.toFixed(4)}</span>
+                <span style="margin-left: 1rem; padding: 0.3rem 0.6rem; border-radius: 6px; font-weight: 600; ${result.price_change_24h >= 0 ? 'background: rgba(0, 255, 157, 0.2); color: #00ff9d;' : 'background: rgba(255, 82, 82, 0.2); color: #ff5252;'}">
+                    ${result.price_change_24h >= 0 ? '+' : ''}${result.price_change_24h ? result.price_change_24h.toFixed(2) : '0.00'}%
+                </span>
+            </div>
+        ` : '';
+        
+        // Adicionar barra de confiança se disponível
+        const confidenceBar = result.score ? `
+            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                <span style="font-size: 0.9rem; color: #00ff9d; font-weight: 600; min-width: 60px;">${Math.round(result.score * 100)}%</span>
+                <div style="flex: 1; height: 8px; background: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden;">
+                    <div style="height: 100%; background: linear-gradient(135deg, #00ff9d 0%, #00b8ff 100%); width: ${Math.round(result.score * 100)}%; transition: width 0.3s ease;"></div>
+                </div>
+            </div>
+        ` : '';
         
         card.innerHTML = `
             <div class="card-header">
                 <div class="crypto-symbol">#${rank} ${result.symbol}/USDT</div>
                 <div class="signal-type ${signalTypeClass}">${emoji} ${result.type}</div>
             </div>
+            ${priceInfo}
             <div class="potential-gain">
                 Potencial: +${result.potential_gain}%
             </div>
+            ${confidenceBar}
             <div class="trade-details">${result.signal}</div>
         `;
         

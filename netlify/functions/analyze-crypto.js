@@ -1,3 +1,28 @@
+// Polyfill para fetch se não estiver disponível
+if (typeof fetch === 'undefined') {
+  const https = require('https');
+  global.fetch = (url) => {
+    return new Promise((resolve, reject) => {
+      https.get(url, (res) => {
+        let data = '';
+        res.on('data', (chunk) => {
+          data += chunk;
+        });
+        res.on('end', () => {
+          resolve({
+            ok: res.statusCode >= 200 && res.statusCode < 300,
+            status: res.statusCode,
+            statusText: res.statusMessage,
+            json: () => Promise.resolve(JSON.parse(data))
+          });
+        });
+      }).on('error', (err) => {
+        reject(err);
+      });
+    });
+  };
+}
+
 // Lista específica de criptomoedas para análise
 const TARGET_CRYPTOCURRENCIES = [
   'bitcoin', 'ethereum', 'ripple', 'tether', 'binancecoin', 
@@ -24,14 +49,23 @@ exports.handler = async (event, context) => {
   }
 
   try {
+    console.log('Iniciando análise de criptomoedas...');
+    
     // Obter dados das criptomoedas específicas
     const targetCoins = await getTargetCryptocurrencies();
+    console.log(`Criptomoedas encontradas: ${targetCoins.length}`);
+    
+    if (targetCoins.length === 0) {
+      throw new Error('Nenhuma criptomoeda foi encontrada para análise');
+    }
     
     // Analisar cada criptomoeda
     const analysisResults = await analyzeCryptocurrencies(targetCoins);
+    console.log(`Análises concluídas: ${analysisResults.length}`);
     
     // Filtrar e ordenar resultados
     const filteredResults = filterAndSortResults(analysisResults);
+    console.log(`Resultados filtrados: ${filteredResults.length}`);
     
     return {
       statusCode: 200,
@@ -45,7 +79,8 @@ exports.handler = async (event, context) => {
       })
     };
   } catch (error) {
-    console.error('Erro na análise:', error);
+    console.error('Erro detalhado na análise:', error);
+    console.error('Stack trace:', error.stack);
     
     return {
       statusCode: 500,
@@ -53,6 +88,7 @@ exports.handler = async (event, context) => {
       body: JSON.stringify({
         success: false,
         error: 'Erro na análise técnica: ' + error.message,
+        details: error.stack,
         timestamp: new Date().toISOString()
       })
     };
@@ -62,19 +98,26 @@ exports.handler = async (event, context) => {
 // Obter dados das criptomoedas específicas
 async function getTargetCryptocurrencies() {
   try {
+    console.log('Fazendo requisição para CoinGecko API...');
+    
     // Usar fetch nativo em vez de axios
     const response = await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&sparkline=false&price_change_percentage=24h');
+    
+    console.log(`Resposta da API: ${response.status} ${response.statusText}`);
     
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
     
     const data = await response.json();
+    console.log(`Dados recebidos: ${data.length} criptomoedas`);
 
     // Filtrar apenas as criptomoedas que queremos
     const filteredCoins = data.filter(coin => 
       TARGET_CRYPTOCURRENCIES.includes(coin.id)
     );
+
+    console.log(`Criptomoedas filtradas: ${filteredCoins.length}`);
 
     // Verificar se encontramos todas as criptomoedas desejadas
     if (filteredCoins.length !== TARGET_CRYPTOCURRENCIES.length) {
@@ -95,7 +138,7 @@ async function getTargetCryptocurrencies() {
     }));
   } catch (error) {
     console.error('Erro ao obter criptomoedas:', error);
-    throw new Error('Não foi possível obter dados das criptomoedas');
+    throw new Error('Não foi possível obter dados das criptomoedas: ' + error.message);
   }
 }
 
