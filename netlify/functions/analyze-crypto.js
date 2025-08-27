@@ -57,7 +57,7 @@ exports.handler = async (event, context) => {
         success: true,
         results: analysisResults,
         total_analyzed: targetCoins.length,
-        timestamp: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+        timestamp: new Date().toISOString().split('T')[0],
         message: `Technical analysis of selected cryptocurrencies completed (${source})`,
         data_source: source
       })
@@ -247,8 +247,8 @@ function analyzeCoin(coin) {
     score += 0.2; // Uptrend
     type = 'LONG';
   } else if (coin.price_change_percentage_24h < -3) {
-    score += 0.15; // Buying opportunity at low
-    type = 'LONG';
+    score += 0.15; // Opportunity to short at high
+    type = 'SHORT';
   }
   
   // Analysis based on volume
