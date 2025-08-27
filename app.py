@@ -96,7 +96,7 @@ def search_trades():
 
 if __name__ == '__main__':
     print("🚀 Iniciando servidor CryptoPulse...")
-    print("📊 Analisando top 50 criptomoedas por market cap")
+    print("📊 Analisando as principais 16 criptomoedas")
     print("🌐 Acesse: http://localhost:5000")
     print("⏱️  A primeira análise pode demorar alguns minutos...")
     app.run(host='0.0.0.0', port=5000, debug=True, threaded=True)
