@@ -84,51 +84,51 @@ function getFallbackData() {
       id: 'bitcoin',
       symbol: 'BTC',
       name: 'Bitcoin',
-      current_price: 45000 + Math.random() * 5000,
-      market_cap: 800000000000 + Math.random() * 100000000000,
-      price_change_24h: (Math.random() - 0.5) * 10,
-      price_change_percentage_24h: (Math.random() - 0.5) * 10,
-      volume_24h: 20000000000 + Math.random() * 10000000000
+      current_price: 85000 + Math.random() * 20000, // $85k - $105k
+      market_cap: 1600000000000 + Math.random() * 200000000000, // $1.6T - $1.8T
+      price_change_24h: (Math.random() - 0.5) * 8000, // ±$4k variation
+      price_change_percentage_24h: (Math.random() - 0.5) * 8, // ±4% variation
+      volume_24h: 30000000000 + Math.random() * 20000000000 // $30B - $50B
     },
     {
       id: 'ethereum',
       symbol: 'ETH',
       name: 'Ethereum',
-      current_price: 2800 + Math.random() * 300,
-      market_cap: 300000000000 + Math.random() * 50000000000,
-      price_change_24h: (Math.random() - 0.5) * 8,
-      price_change_percentage_24h: (Math.random() - 0.5) * 8,
-      volume_24h: 15000000000 + Math.random() * 8000000000
+      current_price: 4500 + Math.random() * 1000, // $4.5k - $5.5k
+      market_cap: 500000000000 + Math.random() * 100000000000, // $500B - $600B
+      price_change_24h: (Math.random() - 0.5) * 400, // ±$200 variation
+      price_change_percentage_24h: (Math.random() - 0.5) * 6, // ±3% variation
+      volume_24h: 20000000000 + Math.random() * 10000000000 // $20B - $30B
     },
     {
       id: 'ripple',
       symbol: 'XRP',
       name: 'XRP',
-      current_price: 0.6 + Math.random() * 0.2,
-      market_cap: 30000000000 + Math.random() * 10000000000,
-      price_change_24h: (Math.random() - 0.5) * 6,
-      price_change_percentage_24h: (Math.random() - 0.5) * 6,
-      volume_24h: 2000000000 + Math.random() * 1000000000
+      current_price: 0.8 + Math.random() * 0.4, // $0.8 - $1.2
+      market_cap: 40000000000 + Math.random() * 20000000000, // $40B - $60B
+      price_change_24h: (Math.random() - 0.5) * 0.2, // ±$0.1 variation
+      price_change_percentage_24h: (Math.random() - 0.5) * 5, // ±2.5% variation
+      volume_24h: 3000000000 + Math.random() * 2000000000 // $3B - $5B
     },
     {
       id: 'binancecoin',
       symbol: 'BNB',
       name: 'BNB',
-      current_price: 320 + Math.random() * 40,
-      market_cap: 50000000000 + Math.random() * 10000000000,
-      price_change_24h: (Math.random() - 0.5) * 7,
-      price_change_percentage_24h: (Math.random() - 0.5) * 7,
-      volume_24h: 3000000000 + Math.random() * 2000000000
+      current_price: 600 + Math.random() * 100, // $600 - $700
+      market_cap: 90000000000 + Math.random() * 20000000000, // $90B - $110B
+      price_change_24h: (Math.random() - 0.5) * 60, // ±$30 variation
+      price_change_percentage_24h: (Math.random() - 0.5) * 4, // ±2% variation
+      volume_24h: 5000000000 + Math.random() * 3000000000 // $5B - $8B
     },
     {
       id: 'solana',
       symbol: 'SOL',
       name: 'Solana',
-      current_price: 100 + Math.random() * 20,
-      market_cap: 40000000000 + Math.random() * 10000000000,
-      price_change_24h: (Math.random() - 0.5) * 9,
-      price_change_percentage_24h: (Math.random() - 0.5) * 9,
-      volume_24h: 2500000000 + Math.random() * 1500000000
+      current_price: 180 + Math.random() * 40, // $180 - $220
+      market_cap: 70000000000 + Math.random() * 20000000000, // $70B - $90B
+      price_change_24h: (Math.random() - 0.5) * 20, // ±$10 variation
+      price_change_percentage_24h: (Math.random() - 0.5) * 7, // ±3.5% variation
+      volume_24h: 4000000000 + Math.random() * 2000000000 // $4B - $6B
     }
   ];
   
@@ -300,23 +300,32 @@ function generateDescription(coin, score) {
     description += `• Trend: Bearish (${coin.price_change_percentage_24h.toFixed(2)}% 24h)\n`;
   }
   
-  // Current price
-  description += `• Current price: $${coin.current_price.toFixed(4)}\n`;
+  // Current price - format without decimals and with thousand separators
+  const formattedPrice = Math.round(coin.current_price).toLocaleString('en-US');
+  description += `• Current price: $${formattedPrice}\n`;
   
-  // Volume
+  // Volume - format with appropriate units and thousand separators
   if (coin.volume_24h > 1000000000) {
-    description += `• Volume: Very High ($${(coin.volume_24h / 1000000000).toFixed(2)}B)\n`;
+    const volumeB = (coin.volume_24h / 1000000000).toFixed(1);
+    description += `• Volume: Very High ($${volumeB}B)\n`;
   } else if (coin.volume_24h > 100000000) {
-    description += `• Volume: High ($${(coin.volume_24h / 1000000).toFixed(2)}M)\n`;
+    const volumeM = (coin.volume_24h / 1000000).toFixed(1);
+    description += `• Volume: High ($${volumeM}M)\n`;
   } else {
-    description += `• Volume: Medium ($${(coin.volume_24h / 1000000).toFixed(2)}M)\n`;
+    const volumeM = (coin.volume_24h / 1000000).toFixed(1);
+    description += `• Volume: Medium ($${volumeM}M)\n`;
   }
   
-  // Market cap
-  if (coin.market_cap > 10000000000) {
-    description += `• Market Cap: High (established)\n`;
+  // Market cap - format with appropriate units
+  if (coin.market_cap > 1000000000000) {
+    const marketCapT = (coin.market_cap / 1000000000000).toFixed(1);
+    description += `• Market Cap: High ($${marketCapT}T)\n`;
+  } else if (coin.market_cap > 10000000000) {
+    const marketCapB = (coin.market_cap / 1000000000).toFixed(1);
+    description += `• Market Cap: High ($${marketCapB}B)\n`;
   } else {
-    description += `• Market Cap: Medium (growth)\n`;
+    const marketCapB = (coin.market_cap / 1000000000).toFixed(1);
+    description += `• Market Cap: Medium ($${marketCapB}B)\n`;
   }
   
   description += `\nStrategy: ${score > 0.6 ? 'Buy' : 'Sell'} with target +${Math.round(score * 20 + 5)}%`;
