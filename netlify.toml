@@ -1,10 +1,15 @@
 [build]
   publish = "."
-  command = "echo 'Build completed - CSS and JS inline'"
+  command = "echo 'Build completed - using crypto-analyzer.html'"
+
+[[redirects]]
+  from = "/"
+  to = "/crypto-analyzer.html"
+  status = 200
 
 [[redirects]]
   from = "/*"
-  to = "/index.html"
+  to = "/crypto-analyzer.html"
   status = 200
 
 [build.environment]

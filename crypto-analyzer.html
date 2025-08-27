@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Trading Analyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 10px rgba(0, 255, 157, 0.3);
+        }
+
+        header p {
+            font-size: 1.1rem;
+            color: #a0a0a0;
+            font-weight: 300;
+        }
+
+        .search-section {
+            text-align: center;
+            margin: 4rem 0;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .search-button {
+            position: relative;
+            background: linear-gradient(135deg, #00ff9d 0%, #00b8ff 100%);
+            border: none;
+            border-radius: 16px;
+            padding: 1.5rem 3rem;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #000;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 8px 32px rgba(0, 255, 157, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            overflow: hidden;
+            min-width: 280px;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .search-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0, 255, 157, 0.3);
+            background: linear-gradient(135deg, #00ff9d 0%, #00d4ff 100%);
+        }
+
+        .search-button:active {
+            transform: translateY(0);
+        }
+
+        .search-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .button-text {
+            transition: opacity 0.3s ease;
+        }
+
+        .loading-spinner {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid transparent;
+            border-top: 3px solid #000;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .subtitle {
+            margin-top: 1.5rem;
+            color: #888;
+            font-size: 1rem;
+            font-weight: 300;
+        }
+
+        .results-section {
+            margin-top: 3rem;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .results-section h2 {
+            text-align: center;
+            margin-bottom: 2rem;
+            color: #00ff9d;
+            font-size: 1.8rem;
+        }
+
+        .results-container {
+            display: grid;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .trade-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .trade-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(135deg, #00ff9d 0%, #00b8ff 100%);
+        }
+
+        .trade-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px rgba(0, 255, 157, 0.1);
+            border-color: rgba(0, 255, 157, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .crypto-symbol {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #ffffff;
+        }
+
+        .signal-type {
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+        }
+
+        .signal-long {
+            background: rgba(0, 255, 157, 0.2);
+            color: #00ff9d;
+            border: 1px solid rgba(0, 255, 157, 0.3);
+        }
+
+        .signal-short {
+            background: rgba(255, 82, 82, 0.2);
+            color: #ff5252;
+            border: 1px solid rgba(255, 82, 82, 0.3);
+        }
+
+        .potential-gain {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #00ff9d;
+            margin-bottom: 1rem;
+        }
+
+        .trade-details {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            white-space: pre-line;
+            line-height: 1.8;
+            color: #e0e0e0;
+            border-left: 3px solid #00ff9d;
+        }
+
+        .analysis-info {
+            text-align: center;
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            margin-top: 2rem;
+        }
+
+        .analysis-info p {
+            color: #a0a0a0;
+            margin: 0.5rem 0;
+        }
+
+        .error-section {
+            text-align: center;
+            margin-top: 3rem;
+            padding: 2rem;
+            background: rgba(255, 82, 82, 0.1);
+            border: 1px solid rgba(255, 82, 82, 0.3);
+            border-radius: 12px;
+            animation: fadeInUp 0.6s ease-out;
+        }
+
+        .error-section h2 {
+            color: #ff5252;
+            margin-bottom: 1rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 2rem 0;
+            margin-top: 3rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: #666;
+            font-size: 0.9rem;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            header h1 {
+                font-size: 2rem;
+            }
+            
+            .search-button {
+                min-width: 250px;
+                padding: 1.2rem 2rem;
+                font-size: 1.1rem;
+            }
+            
+            .trade-card {
+                padding: 1rem;
+            }
+            
+            .card-header {
+                flex-direction: column;
+                gap: 0.5rem;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Crypto Trading Analyzer</h1>
+            <p>Análise avançada de criptomoedas com indicadores técnicos em tempo real</p>
+        </header>
+
+        <main>
+            <div class="search-section">
+                <button id="searchBtn" class="search-button">
+                    <span class="button-text">Search for Trade</span>
+                    <div class="loading-spinner" style="display: none;">
+                        <div class="spinner"></div>
+                    </div>
+                </button>
+                <p class="subtitle">Clique para encontrar as melhores oportunidades de trading agora</p>
+            </div>
+
+            <div id="results" class="results-section" style="display: none;">
+                <h2>📊 Melhores Oportunidades</h2>
+                <div id="resultsContainer" class="results-container">
+                    <!-- Os resultados aparecerão aqui -->
+                </div>
+                <div id="analysisInfo" class="analysis-info">
+                    <!-- Info da análise aparecerá aqui -->
+                </div>
+            </div>
+
+            <div id="error" class="error-section" style="display: none;">
+                <h2>❌ Erro na Análise</h2>
+                <p id="errorMessage"></p>
+            </div>
+        </main>
+
+        <footer>
+            <p>© 2024 Crypto Trading Analyzer - Plataforma de análise de criptomoedas</p>
+        </footer>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const searchBtn = document.getElementById('searchBtn');
+            const buttonText = document.querySelector('.button-text');
+            const loadingSpinner = document.querySelector('.loading-spinner');
+            const resultsSection = document.getElementById('results');
+            const resultsContainer = document.getElementById('resultsContainer');
+            const analysisInfo = document.getElementById('analysisInfo');
+            const errorSection = document.getElementById('error');
+            const errorMessage = document.getElementById('errorMessage');
+
+            searchBtn.addEventListener('click', function() {
+                startSearch();
+            });
+
+            function startSearch() {
+                searchBtn.disabled = true;
+                buttonText.style.opacity = '0';
+                loadingSpinner.style.display = 'block';
+                
+                resultsSection.style.display = 'none';
+                errorSection.style.display = 'none';
+
+                setTimeout(() => {
+                    const demoData = generateDemoData();
+                    displayResults(demoData);
+                    
+                    searchBtn.disabled = false;
+                    buttonText.style.opacity = '1';
+                    loadingSpinner.style.display = 'none';
+                }, 2000);
+            }
+
+            function generateDemoData() {
+                const cryptoList = ['BTC', 'ETH', 'BNB', 'ADA', 'SOL', 'DOT', 'AVAX', 'MATIC', 'LINK', 'UNI'];
+                const results = [];
+                
+                const numResults = Math.floor(Math.random() * 3) + 3;
+                
+                for (let i = 0; i < numResults; i++) {
+                    const symbol = cryptoList[Math.floor(Math.random() * cryptoList.length)];
+                    const type = Math.random() > 0.5 ? 'LONG' : 'SHORT';
+                    const potentialGain = (Math.random() * 15 + 5).toFixed(1);
+                    
+                    const signal = generateSignalText(symbol, type, potentialGain);
+                    
+                    results.push({
+                        symbol: symbol,
+                        type: type,
+                        potential_gain: potentialGain,
+                        signal: signal
+                    });
+                }
+                
+                results.sort((a, b) => parseFloat(b.potential_gain) - parseFloat(a.potential_gain));
+                
+                return {
+                    success: true,
+                    results: results,
+                    total_analyzed: 50,
+                    timestamp: new Date().toLocaleString('pt-BR')
+                };
+            }
+
+            function generateSignalText(symbol, type, gain) {
+                const indicators = [
+                    'RSI: Sobrecomprado (70+)',
+                    'MACD: Cruzamento de alta',
+                    'Média Móvel: Preço acima da MA200',
+                    'Volume: Aumento de 25%',
+                    'Suporte: Testado e mantido',
+                    'Resistência: Próximo breakout',
+                    'Momentum: Forte tendência de alta',
+                    'Divergência: RSI vs Preço'
+                ];
+                
+                const selectedIndicators = indicators
+                    .sort(() => 0.5 - Math.random())
+                    .slice(0, 4);
+                
+                return `Análise Técnica ${symbol}:\n` +
+                       `• ${selectedIndicators[0]}\n` +
+                       `• ${selectedIndicators[1]}\n` +
+                       `• ${selectedIndicators[2]}\n` +
+                       `• ${selectedIndicators[3]}\n\n` +
+                       `Estratégia: ${type === 'LONG' ? 'Compra' : 'Venda'} com alvo +${gain}%`;
+            }
+
+            function displayResults(data) {
+                resultsContainer.innerHTML = '';
+                
+                if (data.results && data.results.length > 0) {
+                    data.results.forEach((result, index) => {
+                        const card = createTradeCard(result, index + 1);
+                        resultsContainer.appendChild(card);
+                    });
+
+                    analysisInfo.innerHTML = `
+                        <p><strong>Análise completa:</strong> ${data.total_analyzed} criptomoedas analisadas</p>
+                        <p><strong>Timestamp:</strong> ${data.timestamp}</p>
+                        <p><strong>Melhores oportunidades:</strong> Top ${data.results.length} selecionadas</p>
+                        <p><em>💡 Esta é uma demonstração estática. Em produção, os dados viriam de análise em tempo real.</em></p>
+                    `;
+
+                    resultsSection.style.display = 'block';
+                } else {
+                    displayError('Nenhuma oportunidade de trading encontrada no momento.');
+                }
+            }
+
+            function createTradeCard(result, rank) {
+                const card = document.createElement('div');
+                card.className = 'trade-card';
+                
+                const signalTypeClass = result.type === 'LONG' ? 'signal-long' : 'signal-short';
+                const emoji = result.type === 'LONG' ? '🔼' : '🔽';
+                
+                card.innerHTML = `
+                    <div class="card-header">
+                        <div class="crypto-symbol">#${rank} ${result.symbol}/USDT</div>
+                        <div class="signal-type ${signalTypeClass}">${emoji} ${result.type}</div>
+                    </div>
+                    <div class="potential-gain">
+                        Potencial: +${result.potential_gain}%
+                    </div>
+                    <div class="trade-details">${result.signal}</div>
+                `;
+                
+                return card;
+            }
+
+            function displayError(message) {
+                errorMessage.textContent = message;
+                errorSection.style.display = 'block';
+            }
+
+            searchBtn.addEventListener('mouseenter', function() {
+                if (!this.disabled) {
+                    this.style.transform = 'translateY(-2px)';
+                }
+            });
+
+            searchBtn.addEventListener('mouseleave', function() {
+                if (!this.disabled) {
+                    this.style.transform = 'translateY(0)';
+                }
+            });
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            const moveX = (e.clientX * -1 / 150);
+            const moveY = (e.clientY * -1 / 150);
+            
+            document.body.style.backgroundPosition = `${moveX}px ${moveY}px`;
+        });
+
+        document.addEventListener('keydown', function(e) {
+            if ((e.code === 'Space' || e.code === 'Enter') && !document.getElementById('searchBtn').disabled) {
+                e.preventDefault();
+                document.getElementById('searchBtn').click();
+            }
+        });
+    </script>
+</body>
+</html>
