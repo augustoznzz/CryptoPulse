@@ -63,8 +63,7 @@ CryptoPulse/
 
 ## ⚠️ Importante:
 
-- **Esta é uma demonstração estática**
-- **Não faz análises reais** de criptomoedas
+- **Análise técnica em tempo real** com dados reais
 - **Funciona 100%** na Netlify
 - **Redirecionamentos automáticos** configurados
 
