@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Script de Inicialização do CryptoPulse
+Script de Inicialização do CryptoRocket
 Permite escolher qual versão da aplicação usar
 """
 
@@ -10,7 +10,7 @@ import subprocess
 import time
 
 def print_banner():
-    """Imprime o banner do CryptoPulse"""
+    """Imprime o banner do CryptoRocket"""
     print("""
     ╔══════════════════════════════════════════════════════════════╗
     ║                    🚀 CryptoRocket                           ║

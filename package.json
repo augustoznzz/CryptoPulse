@@ -15,11 +15,11 @@
     "netlify",
     "demo"
   ],
-  "author": "CryptoPulse Team",
+  "author": "CryptoRocket Team",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/yourusername/CryptoPulse.git"
+    "url": "https://github.com/yourusername/CryptoRocket.git"
   }
 }
 

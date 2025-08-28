@@ -78,7 +78,7 @@ def search_trades():
         }), 500
 
 if __name__ == '__main__':
-    print("🚀 Iniciando servidor CryptoPulse (versão de teste)...")
+    print("🚀 Iniciando servidor CryptoRocket (versão de teste)...")
     print("📊 Simulando análise de criptomoedas")
     print("🌐 Acesse: http://localhost:5000")
     app.run(host='0.0.0.0', port=5000, debug=True, threaded=True) 

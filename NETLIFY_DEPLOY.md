@@ -62,7 +62,7 @@ git push origin main
 
 #### **3. Selecionar Repositório**
 1. **Escolha** "GitHub" como provedor
-2. **Selecione** seu repositório `CryptoPulse`
+2. **Selecione** seu repositório `CryptoRocket`
 3. **Confirme** a conexão
 
 #### **4. Configurar Build**
@@ -78,7 +78,7 @@ git push origin main
 ## 📁 **Estrutura de Arquivos**
 
 ```
-CryptoPulse/
+CryptoRocket/
 ├── index.html              # Interface principal (funciona standalone)
 ├── netlify.toml           # Configuração Netlify
 ├── _redirects             # Redirecionamentos

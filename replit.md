@@ -72,7 +72,7 @@ O projeto já está configurado para funcionar automaticamente no Replit com:
 ## 📁 **Estrutura de Arquivos**
 
 ```
-CryptoPulse/
+CryptoRocket/
 ├── .replit                 # Configuração Replit
 ├── pyproject.toml         # Dependências Python
 ├── requirements.txt       # Requisitos do projeto

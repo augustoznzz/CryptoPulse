@@ -97,7 +97,7 @@ O projeto já inclui `netlify.toml` configurado para funcionar automaticamente.
 ## 📁 Estrutura do Projeto
 
 ```
-CryptoPulse/
+CryptoRocket/
 ├── index.html              # Interface principal (funciona standalone)
 ├── app.py                  # Servidor Flask (opcional)
 ├── technical_indicators.py # Indicadores técnicos

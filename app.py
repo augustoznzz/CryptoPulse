@@ -95,7 +95,7 @@ def search_trades():
         }), 500
 
 if __name__ == '__main__':
-    print("🚀 Iniciando servidor CryptoPulse...")
+    print("🚀 Iniciando servidor CryptoRocket...")
     print("📊 Analisando as principais 16 criptomoedas")
     print("🌐 Acesse: http://localhost:5000")
     print("⏱️  A primeira análise pode demorar alguns minutos...")
