@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Teste Fundo Escuro Mobile - CORREÇÃO AGRESSIVA</title>
+    <title>Teste Fundo Escuro Mobile - CORREÇÃO FINAL</title>
     <style>
         /* Test CSS para verificar fundo escuro */
         * {
@@ -33,7 +33,7 @@
             height: 100%;
         }
         
-        /* Particles Canvas - FORÇAR VISIBILIDADE */
+        /* Particles Canvas - CORRIGIDO PARA FUNCIONAR */
         #particles-canvas {
             position: fixed;
             top: 0;
@@ -45,9 +45,6 @@
             z-index: -1;
             pointer-events: none;
             background: transparent;
-            /* Garantir que as partículas sejam visíveis */
-            opacity: 1 !important;
-            visibility: visible !important;
         }
 
         .container {
@@ -175,13 +172,6 @@
                 z-index: -1;
                 pointer-events: none;
             }
-            
-            /* Forçar partículas visíveis */
-            #particles-canvas {
-                opacity: 1 !important;
-                visibility: visible !important;
-                z-index: -1 !important;
-            }
         }
         
         /* Cobertura extra para dispositivos muito pequenos */
@@ -193,11 +183,11 @@
     </style>
 </head>
 <body>
-    <!-- Canvas de Partículas - FORÇAR VISIBILIDADE -->
+    <!-- Canvas de Partículas - CORRIGIDO -->
     <canvas id="particles-canvas"></canvas>
     
     <div class="container">
-        <h1>🧪 Teste Fundo Escuro Mobile - CORREÇÃO AGRESSIVA</h1>
+        <h1>🧪 Teste Fundo Escuro Mobile - CORREÇÃO FINAL</h1>
         
         <div class="test-section">
             <h2>Teste de Fundo</h2>
@@ -228,7 +218,7 @@
         
         <div class="test-section">
             <h2>Teste de Partículas</h2>
-            <p>Verificando se as partículas estão visíveis no fundo.</p>
+            <p>Verificando se as partículas estão funcionando naturalmente no fundo.</p>
             <button class="test-button" onclick="testParticles()">Testar Partículas</button>
             <div id="particlesTest" class="results" style="display: none;">
                 <!-- Teste de partículas aparecerá aqui -->
@@ -381,13 +371,14 @@
                     <p><strong>Height:</strong> ${canvasStyle.height}</p>
                 `;
                 
-                // Forçar visibilidade
-                particlesCanvas.style.opacity = '1';
-                particlesCanvas.style.visibility = 'visible';
-                particlesCanvas.style.zIndex = '-1';
-                particlesCanvas.style.display = 'block';
+                // Verificar se as partículas estão funcionando
+                if (window.cryptoParticles) {
+                    html += '<p style="color: #00ff9d; font-weight: 600;">✅ Sistema de partículas ativo!</p>';
+                } else {
+                    html += '<p style="color: #ff9800; font-weight: 600;">⚠️ Sistema de partículas não detectado</p>';
+                }
                 
-                html += '<p style="color: #00ff9d; font-weight: 600;">✅ Partículas forçadas a serem visíveis!</p>';
+                html += '<p><em>💡 As partículas devem estar visíveis no fundo como pequenos pontos verdes</em></p>';
             } else {
                 html += '<p style="color: #ff5252; font-weight: 600;">❌ Canvas de partículas não encontrado!</p>';
             }

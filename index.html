@@ -34,7 +34,7 @@
             height: 100%;
         }
         
-        /* Particles Canvas - FORÇAR VISIBILIDADE */
+        /* Particles Canvas - CORRIGIDO PARA FUNCIONAR */
         #particles-canvas {
             position: fixed;
             top: 0;
@@ -46,9 +46,6 @@
             z-index: -1;
             pointer-events: none;
             background: transparent;
-            /* Garantir que as partículas sejam visíveis */
-            opacity: 1 !important;
-            visibility: visible !important;
         }
 
         .container {
@@ -470,13 +467,6 @@
                 z-index: -1;
                 pointer-events: none;
             }
-            
-            /* Forçar partículas visíveis */
-            #particles-canvas {
-                opacity: 1 !important;
-                visibility: visible !important;
-                z-index: -1 !important;
-            }
         }
         
         /* Cobertura extra para dispositivos muito pequenos */
@@ -488,7 +478,7 @@
     </style>
 </head>
 <body>
-    <!-- Canvas de Partículas - FORÇAR VISIBILIDADE -->
+    <!-- Canvas de Partículas - CORRIGIDO -->
     <canvas id="particles-canvas"></canvas>
     
     <div class="container">
@@ -545,7 +535,7 @@
             const errorSection = document.getElementById('error');
             const errorMessage = document.getElementById('errorMessage');
 
-            // Enhanced dark background maintenance - SOLUÇÃO MAIS AGRESSIVA
+            // Enhanced dark background maintenance - CORRIGIDO
             function ensureDarkBackground() {
                 // Force dark background on all viewport elements
                 document.documentElement.style.background = 'linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%)';
@@ -565,14 +555,12 @@
                     document.body.style.minHeight = '100vh';
                     document.body.style.minHeight = '100dvh';
                     
-                    // Ensure particles canvas covers full screen and is visible
+                    // Ensure particles canvas covers full screen - CORRIGIDO
                     const particlesCanvas = document.getElementById('particles-canvas');
                     if (particlesCanvas) {
                         particlesCanvas.style.height = '100vh';
                         particlesCanvas.style.height = '100dvh';
-                        particlesCanvas.style.opacity = '1';
-                        particlesCanvas.style.visibility = 'visible';
-                        particlesCanvas.style.zIndex = '-1';
+                        // NÃO forçar opacity ou visibility - deixar o sistema natural
                     }
                     
                     // Forçar cobertura extra para eliminar fundo branco

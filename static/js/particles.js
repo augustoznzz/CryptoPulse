@@ -32,9 +32,6 @@ class AdvancedParticlesSystem {
     
     // Ensure dark background is maintained
     this.ensureDarkBackground();
-    
-    // Forçar visibilidade das partículas
-    this.forceParticlesVisibility();
   }
 
   ensureDarkBackground() {
@@ -63,26 +60,6 @@ class AdvancedParticlesSystem {
       }
     }
   }
-  
-  forceParticlesVisibility() {
-    if (this.canvas) {
-      // Forçar visibilidade das partículas
-      this.canvas.style.opacity = '1';
-      this.canvas.style.visibility = 'visible';
-      this.canvas.style.zIndex = '-1';
-      this.canvas.style.display = 'block';
-      
-      // Garantir que o canvas seja visível
-      this.canvas.style.pointerEvents = 'none';
-      this.canvas.style.position = 'fixed';
-      this.canvas.style.top = '0';
-      this.canvas.style.left = '0';
-      this.canvas.style.width = '100%';
-      this.canvas.style.height = '100%';
-      this.canvas.style.height = '100vh';
-      this.canvas.style.height = '100dvh';
-    }
-  }
 
   setupEventListeners() {
     // Mouse move tracking
@@ -106,7 +83,6 @@ class AdvancedParticlesSystem {
       this.resizeTimeout = setTimeout(() => {
         this.resizeCanvas();
         this.ensureDarkBackground();
-        this.forceParticlesVisibility();
       }, 200);
     };
 
@@ -145,9 +121,6 @@ class AdvancedParticlesSystem {
       const circle = this.circleParams();
       this.drawCircle(circle);
     }
-    
-    // Forçar visibilidade após redimensionamento
-    this.forceParticlesVisibility();
   }
 
   circleParams() {

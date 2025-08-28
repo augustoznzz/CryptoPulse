@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const errorSection = document.getElementById('error');
     const errorMessage = document.getElementById('errorMessage');
 
-    // Enhanced dark background maintenance - SOLUÇÃO MAIS AGRESSIVA
+    // Enhanced dark background maintenance - CORRIGIDO
     function ensureDarkBackground() {
         // Force dark background on all viewport elements
         document.documentElement.style.background = 'linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%)';
@@ -30,14 +30,12 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.style.minHeight = '100vh';
             document.body.style.minHeight = '100dvh';
             
-            // Ensure particles canvas covers full screen and is visible
+            // Ensure particles canvas covers full screen - CORRIGIDO
             const particlesCanvas = document.getElementById('particles-canvas');
             if (particlesCanvas) {
                 particlesCanvas.style.height = '100vh';
                 particlesCanvas.style.height = '100dvh';
-                particlesCanvas.style.opacity = '1';
-                particlesCanvas.style.visibility = 'visible';
-                particlesCanvas.style.zIndex = '-1';
+                // NÃO forçar opacity ou visibility - deixar o sistema natural
             }
             
             // Forçar cobertura extra para eliminar fundo branco

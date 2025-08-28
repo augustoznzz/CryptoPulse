@@ -26,7 +26,7 @@ html {
     height: 100%;
 }
 
-/* Particles Canvas - FORÇAR VISIBILIDADE */
+/* Particles Canvas - CORRIGIDO PARA FUNCIONAR */
 #particles-canvas {
     position: fixed;
     top: 0;
@@ -38,9 +38,6 @@ html {
     z-index: -1;
     pointer-events: none;
     background: transparent;
-    /* Garantir que as partículas sejam visíveis */
-    opacity: 1 !important;
-    visibility: visible !important;
 }
 
 .container {
@@ -461,13 +458,6 @@ main {
         background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
         z-index: -1;
         pointer-events: none;
-    }
-    
-    /* Forçar partículas visíveis */
-    #particles-canvas {
-        opacity: 1 !important;
-        visibility: visible !important;
-        z-index: -1 !important;
     }
 }
 
