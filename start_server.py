@@ -13,7 +13,7 @@ def print_banner():
     """Imprime o banner do CryptoPulse"""
     print("""
     ╔══════════════════════════════════════════════════════════════╗
-    ║                    🚀 CryptoPulse                            ║
+    ║                    🚀 CryptoRocket                            ║
     ║              Análise de Criptomoedas                         ║
     ║                                                              ║
     ║  Analisando as Top 30 Criptomoedas por Market Cap           ║
