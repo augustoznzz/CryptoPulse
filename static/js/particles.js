@@ -29,6 +29,24 @@ class AdvancedParticlesSystem {
   init() {
     this.resizeCanvas();
     this.drawParticles();
+    
+    // Ensure dark background is maintained
+    this.ensureDarkBackground();
+  }
+
+  ensureDarkBackground() {
+    // Force dark background on html and body
+    if (document.documentElement) {
+      document.documentElement.style.background = 'linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%)';
+    }
+    if (document.body) {
+      document.body.style.background = 'linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%)';
+    }
+    
+    // Ensure canvas doesn't interfere with background
+    if (this.canvas) {
+      this.canvas.style.background = 'transparent';
+    }
   }
 
   setupEventListeners() {
@@ -52,6 +70,7 @@ class AdvancedParticlesSystem {
       }
       this.resizeTimeout = setTimeout(() => {
         this.resizeCanvas();
+        this.ensureDarkBackground();
       }, 200);
     };
 
@@ -79,6 +98,7 @@ class AdvancedParticlesSystem {
     this.canvas.height = this.canvasSize.h * this.dpr;
     this.canvas.style.width = `${this.canvasSize.w}px`;
     this.canvas.style.height = `${this.canvasSize.h}px`;
+    this.canvas.style.background = 'transparent';
     this.ctx.scale(this.dpr, this.dpr);
 
     // Clear existing particles and create new ones

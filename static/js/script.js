@@ -10,6 +10,21 @@ document.addEventListener('DOMContentLoaded', function() {
     const errorSection = document.getElementById('error');
     const errorMessage = document.getElementById('errorMessage');
 
+    // Ensure dark background is maintained
+    function ensureDarkBackground() {
+        document.documentElement.style.background = 'linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%)';
+        document.body.style.background = 'linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%)';
+        
+        // Force all main containers to have transparent background
+        const containers = document.querySelectorAll('.container, .results-section, .results-container, main');
+        containers.forEach(container => {
+            container.style.background = 'transparent';
+        });
+    }
+
+    // Call on load and after results display
+    ensureDarkBackground();
+
     searchBtn.addEventListener('click', function() {
         startSearch();
     });
@@ -80,6 +95,9 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
 
             resultsSection.style.display = 'block';
+            
+            // Ensure dark background after results are displayed
+            setTimeout(ensureDarkBackground, 100);
         } else {
             displayError('Nenhuma oportunidade de trading encontrada no momento.');
         }
@@ -90,7 +108,7 @@ document.addEventListener('DOMContentLoaded', function() {
         card.className = 'trade-card';
         
         const signalTypeClass = result.type === 'LONG' ? 'signal-long' : 'signal-short';
-        const emoji = result.type === 'LONG' ? '🔼' : '��';
+        const emoji = result.type === 'LONG' ? '🔼' : '🔽';
         
         // Adicionar informações de preço e variação se disponíveis
         const priceInfo = result.current_price ? `
@@ -131,20 +149,13 @@ document.addEventListener('DOMContentLoaded', function() {
     function displayError(message) {
         errorMessage.textContent = message;
         errorSection.style.display = 'block';
+        
+        // Ensure dark background after error display
+        setTimeout(ensureDarkBackground, 100);
     }
-
-    // Add some visual feedback for button interactions
-    searchBtn.addEventListener('mouseenter', function() {
-        if (!this.disabled) {
-            this.style.transform = 'translateY(-2px)';
-        }
-    });
-
-    searchBtn.addEventListener('mouseleave', function() {
-        if (!this.disabled) {
-            this.style.transform = 'translateY(0)';
-        }
-    });
+    
+    // Ensure dark background on window resize
+    window.addEventListener('resize', ensureDarkBackground);
 });
 
 // Add a subtle parallax effect to the background

@@ -5,12 +5,13 @@
     box-sizing: border-box;
 }
 
-body {
+html, body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+    background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%) !important;
     color: #e0e0e0;
     min-height: 100vh;
     line-height: 1.6;
+    overflow-x: hidden;
 }
 
 .container {
@@ -20,6 +21,7 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    background: transparent;
 }
 
 /* Header */
@@ -27,6 +29,7 @@ header {
     text-align: center;
     margin-bottom: 3rem;
     padding: 2rem 0;
+    background: transparent;
 }
 
 header h1 {
@@ -52,6 +55,7 @@ header p {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    background: transparent;
 }
 
 .search-button {
@@ -128,6 +132,7 @@ header p {
 .results-section {
     margin-top: 3rem;
     animation: fadeInUp 0.6s ease-out;
+    background: transparent;
 }
 
 .results-section h2 {
@@ -141,6 +146,7 @@ header p {
     display: grid;
     gap: 1.5rem;
     margin-bottom: 2rem;
+    background: transparent;
 }
 
 .trade-card {
@@ -152,6 +158,8 @@ header p {
     transition: all 0.3s ease;
     position: relative;
     overflow: hidden;
+    width: 85%;
+    margin: 0 auto;
 }
 
 .trade-card::before {
@@ -258,6 +266,7 @@ footer {
     border-top: 1px solid rgba(255, 255, 255, 0.1);
     color: #666;
     font-size: 0.9rem;
+    background: transparent;
 }
 
 /* Animations */
@@ -274,8 +283,14 @@ footer {
 
 /* Responsive Design */
 @media (max-width: 768px) {
+    html, body {
+        background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%) !important;
+        overflow-x: hidden;
+    }
+    
     .container {
         padding: 1rem;
+        background: transparent;
     }
     
     header h1 {
@@ -290,12 +305,50 @@ footer {
     
     .trade-card {
         padding: 1rem;
+        width: 95%;
+        background: rgba(255, 255, 255, 0.05);
     }
     
     .card-header {
         flex-direction: column;
         gap: 0.5rem;
         align-items: flex-start;
+    }
+    
+    .results-section {
+        background: transparent;
+    }
+    
+    .results-container {
+        background: transparent;
+    }
+    
+    .analysis-info {
+        background: rgba(255, 255, 255, 0.05);
+    }
+}
+
+/* Mobile-specific fixes */
+@media (max-width: 480px) {
+    html, body {
+        background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%) !important;
+    }
+    
+    .container {
+        padding: 0.5rem;
+        background: transparent;
+    }
+    
+    .trade-card {
+        width: 100%;
+        margin: 0 0 1rem 0;
+        background: rgba(255, 255, 255, 0.05);
+    }
+    
+    .search-button {
+        min-width: 200px;
+        padding: 1rem 1.5rem;
+        font-size: 1rem;
     }
 }
 
@@ -315,4 +368,18 @@ footer {
 
 ::-webkit-scrollbar-thumb:hover {
     background: #606060;
+}
+
+/* Force dark background on all elements */
+main {
+    background: transparent;
+}
+
+#results, #error {
+    background: transparent;
+}
+
+/* Ensure no white backgrounds */
+*[style*="background: white"], *[style*="background: #fff"], *[style*="background-color: white"], *[style*="background-color: #fff"] {
+    background: rgba(255, 255, 255, 0.05) !important;
 }

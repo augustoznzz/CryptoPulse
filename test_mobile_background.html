@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Fundo Escuro Mobile</title>
+    <style>
+        /* Test CSS para verificar fundo escuro */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html, body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%) !important;
+            color: #e0e0e0;
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background: transparent;
+        }
+
+        .test-section {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 2rem 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .test-button {
+            background: linear-gradient(135deg, #00ff9d 0%, #00b8ff 100%);
+            border: none;
+            border-radius: 12px;
+            padding: 1rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #000;
+            cursor: pointer;
+            margin: 1rem 0;
+        }
+
+        .results {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 12px;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-left: 3px solid #00ff9d;
+        }
+
+        /* Mobile-specific fixes */
+        @media (max-width: 768px) {
+            html, body {
+                background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%) !important;
+            }
+            
+            .container {
+                padding: 1rem;
+                background: transparent;
+            }
+            
+            .test-section {
+                background: rgba(255, 255, 255, 0.05);
+            }
+        }
+
+        @media (max-width: 480px) {
+            html, body {
+                background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%) !important;
+            }
+            
+            .container {
+                padding: 0.5rem;
+                background: transparent;
+            }
+        }
+
+        /* Force dark background on all elements */
+        main {
+            background: transparent;
+        }
+
+        /* Ensure no white backgrounds */
+        *[style*="background: white"], *[style*="background: #fff"], *[style*="background-color: white"], *[style*="background-color: #fff"] {
+            background: rgba(255, 255, 255, 0.05) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Teste Fundo Escuro Mobile</h1>
+        
+        <div class="test-section">
+            <h2>Teste de Fundo</h2>
+            <p>Esta seção deve ter fundo escuro translúcido, não branco.</p>
+            <button class="test-button" onclick="testBackground()">Testar Fundo</button>
+            <div id="testResults" class="results" style="display: none;">
+                <!-- Resultados do teste aparecerão aqui -->
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>Simulação de Trades</h2>
+            <p>Simulando a exibição de resultados como no app real.</p>
+            <button class="test-button" onclick="simulateTrades()">Simular Trades</button>
+            <div id="tradeResults" class="results" style="display: none;">
+                <!-- Trades simulados aparecerão aqui -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function ensureDarkBackground() {
+            document.documentElement.style.background = 'linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%)';
+            document.body.style.background = 'linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%)';
+            
+            const containers = document.querySelectorAll('.container, .test-section, .results');
+            containers.forEach(container => {
+                container.style.background = container.classList.contains('results') ? 
+                    'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.05)';
+            });
+        }
+
+        function testBackground() {
+            const results = document.getElementById('testResults');
+            results.style.display = 'block';
+            
+            const htmlBg = getComputedStyle(document.documentElement).background;
+            const bodyBg = getComputedStyle(document.body).background;
+            const containerBg = getComputedStyle(document.querySelector('.container')).background;
+            
+            results.innerHTML = `
+                <h3>Resultados do Teste:</h3>
+                <p><strong>HTML background:</strong> ${htmlBg}</p>
+                <p><strong>Body background:</strong> ${bodyBg}</p>
+                <p><strong>Container background:</strong> ${containerBg}</p>
+                <p><strong>Status:</strong> ${htmlBg.includes('0c0c0c') ? '✅ Fundo escuro detectado' : '❌ Fundo não escuro'}</p>
+            `;
+            
+            setTimeout(ensureDarkBackground, 100);
+        }
+
+        function simulateTrades() {
+            const results = document.getElementById('tradeResults');
+            results.style.display = 'block';
+            
+            const mockTrades = [
+                { symbol: 'BTC', type: 'LONG', potential: 15.5, signal: 'Strong buy signal based on RSI and MACD convergence' },
+                { symbol: 'ETH', type: 'SHORT', potential: 8.2, signal: 'Bearish divergence detected on 4H timeframe' }
+            ];
+            
+            let html = '<h3>Trades Simulados:</h3>';
+            mockTrades.forEach((trade, index) => {
+                html += `
+                    <div style="margin: 1rem 0; padding: 1rem; background: rgba(255, 255, 255, 0.05); border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.1);">
+                        <h4>${trade.symbol}/USDT - ${trade.type}</h4>
+                        <p>Potencial: +${trade.potential}%</p>
+                        <p>${trade.signal}</p>
+                    </div>
+                `;
+            });
+            
+            results.innerHTML = html;
+            
+            setTimeout(ensureDarkBackground, 100);
+        }
+
+        // Ensure dark background on load and resize
+        document.addEventListener('DOMContentLoaded', ensureDarkBackground);
+        window.addEventListener('resize', ensureDarkBackground);
+    </script>
+</body>
+</html>
