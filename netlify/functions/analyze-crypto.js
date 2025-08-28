@@ -176,7 +176,7 @@ exports.handler = async (event, context) => {
         results: analysisResults,
         total_analyzed: targetCoins.length,
         timestamp: new Date().toISOString().split('T')[0],
-        message: `Technical analysis of selected cryptocurrencies completed (${source})`,
+        message: `Technical analysis completed - Top 5 best opportunities selected (${source})`,
         data_source: source,
         api_attempts: retryCount,
         rate_limit_info: {
@@ -444,10 +444,10 @@ function generateSimpleAnalysis(coins) {
       }
   }
   
-      // Sort by score and return top 10
+      // Sort by score and return top 5
   return results
     .sort((a, b) => b.score - a.score)
-    .slice(0, 10);
+    .slice(0, 5);
 }
 
 // Analisar uma criptomoeda individual

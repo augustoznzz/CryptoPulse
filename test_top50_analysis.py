@@ -25,9 +25,9 @@ def test_top50_analysis():
         
         print(f"✅ Successfully fetched {len(top_coins)} cryptocurrencies")
         
-        # Display first 10 cryptocurrencies
-        print("\n🏆 Top 10 cryptocurrencies by market cap:")
-        for i, coin in enumerate(top_coins[:10], 1):
+        # Display first 5 cryptocurrencies (as shown to users)
+        print("\n🏆 Top 5 cryptocurrencies by market cap (as shown to users):")
+        for i, coin in enumerate(top_coins[:5], 1):
             print(f"{i:2d}. {coin['symbol']:6s} - {coin['name']:20s} - ${coin['current_price']:,.2f} - Rank #{coin['market_cap_rank']}")
         
         # Test analysis of first 5 coins (for speed)

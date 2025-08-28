@@ -154,7 +154,7 @@ document.addEventListener('DOMContentLoaded', function() {
             analysisInfo.innerHTML = `
                 <p><strong>Análise completa:</strong> ${data.total_analyzed} criptomoedas analisadas</p>
                 <p><strong>Timestamp:</strong> ${data.timestamp}</p>
-                <p><strong>Melhores oportunidades:</strong> Top ${data.results.length} selecionadas</p>
+                <p><strong>Melhores oportunidades:</strong> Top 5 selecionadas (sempre mostrando as 5 melhores criptomoedas)</p>
                 <p><em>💡 Análise técnica em tempo real com dados reais do mercado</em></p>
             `;
 

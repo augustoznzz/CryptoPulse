@@ -421,6 +421,7 @@
         </main>
 
         <footer>
+            <p><em>Made By: Augusto Zuanazzi</em></p>
             <p>© 2025 Crypto Trading Analyzer - Análise técnica em tempo real</p>
             <p style="margin-top: 0.5rem; font-size: 0.8rem; color: #888;">
                 Dados fornecidos por CoinGecko API • Análise técnica calculada em tempo real
@@ -502,8 +503,8 @@
                     analysisInfo.innerHTML = `
                         <p><strong>Análise completa:</strong> ${data.total_analyzed} criptomoedas analisadas</p>
                         <p><strong>Timestamp:</strong> ${new Date(data.timestamp).toLocaleString('pt-BR')}</p>
-                        <p><strong>Melhores oportunidades:</strong> Top ${data.results.length} selecionadas</p>
-                        <p><em>�� Análise técnica em tempo real com dados reais do mercado</em></p>
+                        <p><strong>Melhores oportunidades:</strong> Top 5 selecionadas (sempre mostrando as 5 melhores criptomoedas)</p>
+                        <p><em>💡 Análise técnica em tempo real com dados reais do mercado</em></p>
                     `;
 
                     resultsSection.style.display = 'block';
