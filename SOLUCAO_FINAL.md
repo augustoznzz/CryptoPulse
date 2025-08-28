@@ -70,7 +70,7 @@ O sistema analisa exclusivamente as seguintes criptomoedas:
 - **Netlify Functions** - Serverless para produção
 
 ### Análise Técnica
-- **Indicadores RSI, MACD, Bollinger Bands**
+- **Indicadores Básicos: price_change_24h, volume_24h, market_cap**
 - **Médias móveis simples e exponencial**
 - **Análise de volume e volatilidade**
 - **Sinais de compra e venda automatizados**
@@ -114,7 +114,7 @@ O sistema analisa exclusivamente as seguintes criptomoedas:
 #1 SOL/USDT 🔼 LONG
 Potential: +15.8%
 Confidence: 87%
-Signal: RSI oversold + MACD crossover + Support level
+Signal: Price change + Volume + Market cap analysis
 ```
 
 ## 🌐 Deploy

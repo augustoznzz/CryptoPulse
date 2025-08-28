@@ -1,6 +1,6 @@
 """
-Utility Functions
-Helper functions for formatting and calculations
+Utility Functions - Simplified Version
+Helper functions for basic formatting and calculations
 """
 
 import math
@@ -52,30 +52,6 @@ def format_price(price, min_decimals=2, max_decimals=8):
     
     return formatted
 
-def calculate_fibonacci_targets(entry_price, direction, base_distance):
-    """
-    Calculate Fibonacci-based take profit targets
-    
-    Args:
-        entry_price (float): Entry price
-        direction (str): 'LONG' or 'SHORT'
-        base_distance (float): Base distance for calculations
-        
-    Returns:
-        dict: Fibonacci target levels
-    """
-    fib_ratios = [0.618, 1.0, 1.618, 2.618]
-    targets = {}
-    
-    for i, ratio in enumerate(fib_ratios, 1):
-        if direction == 'LONG':
-            target = entry_price + (base_distance * ratio)
-        else:  # SHORT
-            target = entry_price - (base_distance * ratio)
-        targets[f'tp{i}'] = target
-    
-    return targets
-
 def calculate_percentage_change(old_value, new_value):
     """
     Calculate percentage change between two values
@@ -91,84 +67,42 @@ def calculate_percentage_change(old_value, new_value):
         return 0
     return ((new_value - old_value) / old_value) * 100
 
-def calculate_risk_reward_ratio(entry, take_profit, stop_loss):
+def format_volume(volume):
     """
-    Calculate risk-reward ratio for a trade
+    Format volume with appropriate units (K, M, B, T)
     
     Args:
-        entry (float): Entry price
-        take_profit (float): Take profit price
-        stop_loss (float): Stop loss price
+        volume (float): Volume value
         
     Returns:
-        float: Risk-reward ratio
+        str: Formatted volume string
     """
-    risk = abs(entry - stop_loss)
-    reward = abs(take_profit - entry)
-    
-    if risk == 0:
-        return float('inf')
-    
-    return reward / risk
-
-def validate_price_levels(entry, targets, stops, direction):
-    """
-    Validate that price levels are logically ordered
-    
-    Args:
-        entry (float): Entry price
-        targets (list): List of take profit targets
-        stops (list): List of stop loss levels
-        direction (str): 'LONG' or 'SHORT'
-        
-    Returns:
-        bool: True if levels are valid
-    """
-    if direction == 'LONG':
-        # For long positions: targets should be above entry, stops below
-        targets_valid = all(target > entry for target in targets)
-        stops_valid = all(stop < entry for stop in stops)
-    else:  # SHORT
-        # For short positions: targets should be below entry, stops above
-        targets_valid = all(target < entry for target in targets)
-        stops_valid = all(stop > entry for stop in stops)
-    
-    # Targets should be in ascending order (for LONG) or descending (for SHORT)
-    if direction == 'LONG':
-        targets_ordered = all(targets[i] <= targets[i+1] for i in range(len(targets)-1))
+    if volume >= 1e12:
+        return f"${volume/1e12:.1f}T"
+    elif volume >= 1e9:
+        return f"${volume/1e9:.1f}B"
+    elif volume >= 1e6:
+        return f"${volume/1e6:.1f}M"
+    elif volume >= 1e3:
+        return f"${volume/1e3:.1f}K"
     else:
-        targets_ordered = all(targets[i] >= targets[i+1] for i in range(len(targets)-1))
-    
-    return targets_valid and stops_valid and targets_ordered
+        return f"${volume:.0f}"
 
-def safe_divide(numerator, denominator, default=0):
+def format_market_cap(market_cap):
     """
-    Safely divide two numbers, returning default if denominator is zero
+    Format market cap with appropriate units
     
     Args:
-        numerator (float): Numerator
-        denominator (float): Denominator
-        default (float): Default value if division by zero
+        market_cap (float): Market cap value
         
     Returns:
-        float: Division result or default
+        str: Formatted market cap string
     """
-    if denominator == 0:
-        return default
-    return numerator / denominator
-
-def round_to_significant_figures(number, sig_figs=5):
-    """
-    Round a number to specified significant figures
-    
-    Args:
-        number (float): Number to round
-        sig_figs (int): Number of significant figures
-        
-    Returns:
-        float: Rounded number
-    """
-    if number == 0:
-        return 0
-    
-    return round(number, -int(math.floor(math.log10(abs(number)))) + (sig_figs - 1))
+    if market_cap >= 1e12:
+        return f"${market_cap/1e12:.1f}T"
+    elif market_cap >= 1e9:
+        return f"${market_cap/1e9:.1f}B"
+    elif market_cap >= 1e6:
+        return f"${market_cap/1e6:.1f}M"
+    else:
+        return f"${market_cap:.0f}"

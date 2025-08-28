@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Simples - Crypto Rocket</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: #0c0c0c;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #333;
+            border-radius: 10px;
+        }
+        .success { border-color: #00ff9d; }
+        .error { border-color: #ff6b6b; }
+        button {
+            background: #00ff9d;
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #00cc7d; }
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="particles-canvas"></canvas>
+    
+    <h1>🧪 Teste Simples - Crypto Rocket</h1>
+    
+    <div class="test-section success">
+        <h3>✅ Teste 1: HTML Básico</h3>
+        <p>Se você está vendo esta mensagem, o HTML está funcionando.</p>
+    </div>
+    
+    <div class="test-section success">
+        <h3>✅ Teste 2: CSS Básico</h3>
+        <p>Se você está vendo cores e estilos, o CSS está funcionando.</p>
+    </div>
+    
+    <div class="test-section">
+        <h3>🎯 Teste 3: Sistema de Partículas</h3>
+        <p>Clique no botão para testar o sistema de partículas:</p>
+        <button onclick="testParticles()">Testar Partículas</button>
+        <div id="particles-status">Aguardando teste...</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>🔧 Teste 4: JavaScript</h3>
+        <p>Clique no botão para testar o JavaScript:</p>
+        <button onclick="testJavaScript()">Testar JavaScript</button>
+        <div id="js-status">Aguardando teste...</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>📱 Teste 5: Responsividade</h3>
+        <p>Redimensione a janela para testar a responsividade.</p>
+        <div id="responsive-status">Largura atual: <span id="current-width"></span>px</div>
+    </div>
+    
+    <div class="test-section">
+        <h3>🌐 Teste 6: Navegador</h3>
+        <p>Informações do navegador:</p>
+        <div id="browser-info"></div>
+    </div>
+
+    <script>
+        // Teste de partículas
+        function testParticles() {
+            const status = document.getElementById('particles-status');
+            const canvas = document.getElementById('particles-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            if (!canvas) {
+                status.innerHTML = '❌ Canvas não encontrado';
+                return;
+            }
+            
+            if (!ctx) {
+                status.innerHTML = '❌ Contexto 2D não disponível';
+                return;
+            }
+            
+            // Configurar canvas
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            
+            // Desenhar partícula de teste
+            ctx.fillStyle = '#90EE90';
+            ctx.beginPath();
+            ctx.arc(100, 100, 10, 0, Math.PI * 2);
+            ctx.fill();
+            
+            status.innerHTML = '✅ Partículas funcionando! Verde claro visível em (100, 100)';
+        }
+        
+        // Teste de JavaScript
+        function testJavaScript() {
+            const status = document.getElementById('js-status');
+            try {
+                const testArray = [1, 2, 3, 4, 5];
+                const sum = testArray.reduce((a, b) => a + b, 0);
+                status.innerHTML = `✅ JavaScript funcionando! Soma do array: ${sum}`;
+            } catch (error) {
+                status.innerHTML = `❌ Erro no JavaScript: ${error.message}`;
+            }
+        }
+        
+        // Teste de responsividade
+        function updateResponsiveStatus() {
+            const width = window.innerWidth;
+            const status = document.getElementById('current-width');
+            const responsiveStatus = document.getElementById('responsive-status');
+            
+            status.textContent = width;
+            
+            if (width < 768) {
+                responsiveStatus.className = 'test-section error';
+                responsiveStatus.innerHTML = `<h3>📱 Teste 5: Responsividade</h3><p>Mobile: ${width}px</p>`;
+            } else if (width < 1024) {
+                responsiveStatus.className = 'test-section';
+                responsiveStatus.innerHTML = `<h3>📱 Teste 5: Responsividade</h3><p>Tablet: ${width}px</p>`;
+            } else {
+                responsiveStatus.className = 'test-section success';
+                responsiveStatus.innerHTML = `<h3>📱 Teste 5: Responsividade</h3><p>Desktop: ${width}px</p>`;
+            }
+        }
+        
+        // Teste de navegador
+        function testBrowser() {
+            const info = document.getElementById('browser-info');
+            const userAgent = navigator.userAgent;
+            const language = navigator.language;
+            const cookieEnabled = navigator.cookieEnabled;
+            const online = navigator.onLine;
+            
+            info.innerHTML = `
+                <p><strong>User Agent:</strong> ${userAgent}</p>
+                <p><strong>Idioma:</strong> ${language}</p>
+                <p><strong>Cookies:</strong> ${cookieEnabled ? '✅ Habilitados' : '❌ Desabilitados'}</p>
+                <p><strong>Online:</strong> ${online ? '✅ Sim' : '❌ Não'}</p>
+            `;
+        }
+        
+        // Inicializar testes
+        document.addEventListener('DOMContentLoaded', function() {
+            updateResponsiveStatus();
+            testBrowser();
+            
+            // Atualizar responsividade quando redimensionar
+            window.addEventListener('resize', updateResponsiveStatus);
+        });
+    </script>
+</body>
+</html>

@@ -1,18 +1,15 @@
 #!/usr/bin/env python3
 """
-Market Data Module
-Fetches real cryptocurrency market data from CoinGecko API
+Market Data Module - Simplified Version
+Fetches only basic cryptocurrency data: price_change_24h, volume_24h, market_cap
 """
 
 import requests
 from pycoingecko import CoinGeckoAPI
 import time
-import pandas as pd
-import numpy as np
-from datetime import datetime, timedelta
 
 class MarketDataFetcher:
-    """Fetches real market data from CoinGecko API"""
+    """Fetches basic market data from CoinGecko API"""
     
     def __init__(self, verbose=False):
         """Initialize market data fetcher"""
@@ -26,245 +23,79 @@ class MarketDataFetcher:
         if self.verbose:
             print(f"[MARKET] {message}")
     
-    def get_top_cryptocurrencies(self, limit=50):
+    def get_target_cryptocurrencies(self):
         """
-        Get top 50 cryptocurrencies by market cap
+        Get the 16 target cryptocurrencies with basic data only
         
-        Args:
-            limit (int): Number of top cryptocurrencies to fetch (default: 50)
-            
         Returns:
-            list: List of cryptocurrency data
+            list: List of cryptocurrency data with only basic indicators
         """
         try:
-            self.log(f"Fetching top {limit} cryptocurrencies by market cap")
+            self.log("Fetching target cryptocurrencies with basic indicators")
             
-            # Get market data sorted by market cap
+            # Target cryptocurrencies (same as Netlify function)
+            target_coins = [
+                'bitcoin', 'ethereum', 'ripple', 'tether', 'binancecoin', 
+                'solana', 'usd-coin', 'dogecoin', 'tron', 'cardano', 
+                'chainlink', 'sui', 'stellar', 'uniswap', 'polkadot', 'dai'
+            ]
+            
+            # Get market data for target coins
             coins = self.cg.get_coins_markets(
                 vs_currency='usd',
+                ids=','.join(target_coins),
                 order='market_cap_desc',
-                per_page=limit,
-                page=1,
                 sparkline=False,
-                price_change_percentage='1h,24h,7d'
+                price_change_percentage='24h'
             )
             
-            # Filter coins that have USDT pairs and sufficient volume
-            filtered_coins = []
+            # Extract only the 3 basic indicators
+            basic_data = []
             for coin in coins:
-                if (coin.get('total_volume', 0) > 1000000 and  # Min $1M volume
-                    coin.get('market_cap', 0) > 10000000 and   # Min $10M market cap
-                    coin.get('current_price', 0) > 0):         # Valid price
-                    
-                    filtered_coins.append({
-                        'id': coin['id'],
-                        'symbol': coin['symbol'].upper(),
-                        'name': coin['name'],
-                        'current_price': coin['current_price'],
-                        'market_cap': coin['market_cap'],
-                        'volume_24h': coin['total_volume'],
-                        'price_change_1h': coin.get('price_change_percentage_1h', 0),
-                        'price_change_24h': coin.get('price_change_percentage_24h', 0),
-                        'price_change_7d': coin.get('price_change_percentage_7d', 0),
-                        'market_cap_rank': coin.get('market_cap_rank', 999)
-                    })
+                basic_data.append({
+                    'id': coin['id'],
+                    'symbol': coin['symbol'].upper(),
+                    'name': coin['name'],
+                    'current_price': coin['current_price'],
+                    'market_cap': coin['market_cap'],
+                    'volume_24h': coin['total_volume'],
+                    'price_change_24h': coin.get('price_change_percentage_24h', 0)
+                })
             
-            self.log(f"Filtered to {len(filtered_coins)} valid cryptocurrencies")
-            return filtered_coins
+            self.log(f"Fetched basic data for {len(basic_data)} cryptocurrencies")
+            return basic_data
             
         except Exception as e:
             self.log(f"Error fetching market data: {str(e)}")
             return []
     
-    def get_historical_data_for_coin(self, coin_id, days=30):
+    def get_fallback_data(self):
         """
-        Get historical price data for a specific coin
+        Get fallback data when API fails (simplified)
         
-        Args:
-            coin_id (str): CoinGecko coin ID
-            days (int): Number of days of historical data
-            
         Returns:
-            pandas.DataFrame: Historical OHLCV data
+            list: Basic fallback data with only 3 indicators
         """
-        try:
-            cache_key = f"{coin_id}_{days}"
-            current_time = time.time()
-            
-            # Check cache
-            if cache_key in self.cache:
-                cache_data, cache_time = self.cache[cache_key]
-                if current_time - cache_time < self.cache_timeout:
-                    return cache_data
-            
-            self.log(f"Fetching {days} days of historical data for {coin_id}")
-            
-            # Get historical market data
-            data = self.cg.get_coin_market_chart_by_id(
-                id=coin_id,
-                vs_currency='usd',
-                days=days
-            )
-            
-            if not data or 'prices' not in data:
-                return None
-            
-            # Convert to DataFrame
-            prices = data['prices']
-            volumes = data['total_volumes']
-            
-            df = pd.DataFrame(prices, columns=['timestamp', 'close'])
-            df['volume'] = [v[1] for v in volumes]
-            
-            # Convert timestamp
-            df['datetime'] = pd.to_datetime(df['timestamp'], unit='ms')
-            df.set_index('datetime', inplace=True)
-            df.drop('timestamp', axis=1, inplace=True)
-            
-            # Generate OHLC from close prices (approximation for better analysis)
-            df['open'] = df['close'].shift(1).fillna(df['close'])
-            df['high'] = df[['open', 'close']].max(axis=1) * (1 + np.random.uniform(0, 0.02, len(df)))
-            df['low'] = df[['open', 'close']].min(axis=1) * (1 - np.random.uniform(0, 0.02, len(df)))
-            
-            # Reorder columns
-            df = df[['open', 'high', 'low', 'close', 'volume']]
-            
-            # Cache the result
-            self.cache[cache_key] = (df, current_time)
-            
-            self.log(f"Successfully fetched {len(df)} data points for {coin_id}")
-            return df
-            
-        except Exception as e:
-            self.log(f"Error fetching historical data for {coin_id}: {str(e)}")
-            return None
-    
-    def calculate_market_momentum(self, coin_data):
-        """
-        Calculate market momentum score for a coin
-        
-        Args:
-            coin_data (dict): Coin market data
-            
-        Returns:
-            float: Momentum score (0-100)
-        """
-        try:
-            # Factors for momentum calculation
-            price_change_24h = coin_data.get('price_change_24h', 0)
-            price_change_7d = coin_data.get('price_change_7d', 0)
-            volume_24h = coin_data.get('volume_24h', 0)
-            market_cap = coin_data.get('market_cap', 1)
-            
-            # Volume-to-market-cap ratio (higher is better for momentum)
-            volume_ratio = min(volume_24h / market_cap * 100, 10) if market_cap > 0 else 0
-            
-            # Price momentum (weighted recent changes more)
-            price_momentum = (price_change_24h * 0.7 + price_change_7d * 0.3) / 2
-            
-            # Combine factors
-            momentum_score = (
-                price_momentum * 0.6 +      # 60% price momentum
-                volume_ratio * 0.3 +        # 30% volume activity  
-                min(abs(price_change_24h), 20) * 0.1  # 10% volatility (capped)
-            )
-            
-            # Normalize to 0-100 scale
-            momentum_score = max(0, min(100, momentum_score + 50))
-            
-            return round(momentum_score, 2)
-            
-        except Exception as e:
-            self.log(f"Error calculating momentum: {str(e)}")
-            return 50  # Neutral score on error
-    
-    def filter_by_technical_criteria(self, coins_data):
-        """
-        Filter coins based on technical analysis criteria, excluding stablecoins
-        
-        Args:
-            coins_data (list): List of coin market data
-            
-        Returns:
-            list: Filtered coins with potential (excluding stablecoins)
-        """
-        # Lista de stablecoins para excluir da análise de oportunidades
-        stablecoins = {
-            'USDT', 'USDC', 'BUSD', 'DAI', 'TUSD', 'USDP', 'USDD', 'FRAX', 
-            'GUSD', 'HUSD', 'USDK', 'USDN', 'USDJ', 'USDK', 'USDN', 'USDJ',
-            'STETH', 'WSTETH', 'WEETH', 'WBETH', 'BSC-USD'
-        }
-        
-        filtered = []
-        
-        for coin in coins_data:
-            symbol = coin.get('symbol', '').upper()
-            
-            # Skip stablecoins
-            if symbol in stablecoins:
-                self.log(f"Skipping stablecoin: {symbol}")
-                continue
-                
-            momentum = self.calculate_market_momentum(coin)
-            
-            # Technical criteria for filtering
-            criteria_met = 0
-            total_criteria = 5
-            
-            # 1. Positive momentum score
-            if momentum > 55:
-                criteria_met += 1
-            
-            # 2. Recent price action (not too volatile)
-            price_change_24h = abs(coin.get('price_change_24h', 0))
-            if 1 <= price_change_24h <= 15:  # 1-15% daily change
-                criteria_met += 1
-            
-            # 3. Volume activity
-            volume_24h = coin.get('volume_24h', 0)
-            market_cap = coin.get('market_cap', 1)
-            if volume_24h / market_cap > 0.05:  # Min 5% turnover
-                criteria_met += 1
-            
-            # 4. Market cap stability (not too small)
-            if coin.get('market_cap', 0) > 10000000:  # Min $10M market cap
-                criteria_met += 1
-            
-            # 5. Price above $0.001 (avoid micro-caps)
-            if coin.get('current_price', 0) > 0.001:
-                criteria_met += 1
-            
-            # Require at least 3 out of 5 criteria
-            if criteria_met >= 3:
-                coin['momentum_score'] = momentum
-                coin['criteria_score'] = criteria_met
-                filtered.append(coin)
-        
-        # Sort by momentum score
-        filtered.sort(key=lambda x: x['momentum_score'], reverse=True)
-        
-        self.log(f"Filtered {len(filtered)} coins from {len(coins_data)} based on technical criteria (excluding stablecoins)")
-        return filtered
-    
-    def get_tradeable_pairs(self, symbol):
-        """
-        Check if a symbol has tradeable pairs on major exchanges
-        
-        Args:
-            symbol (str): Cryptocurrency symbol
-            
-        Returns:
-            bool: True if tradeable pairs exist
-        """
-        # Common trading pairs to check
-        tradeable_pairs = [
-            f"{symbol}/USDT",
-            f"{symbol}/USD", 
-            f"{symbol}/USDC",
-            f"{symbol}/BTC",
-            f"{symbol}/ETH"
+        fallback_coins = [
+            {
+                'id': 'bitcoin',
+                'symbol': 'BTC',
+                'name': 'Bitcoin',
+                'current_price': 95000 + (time.time() % 10000),
+                'market_cap': 1800000000000 + (time.time() % 200000000000),
+                'volume_24h': 35000000000 + (time.time() % 15000000000),
+                'price_change_24h': (time.time() % 6) - 3
+            },
+            {
+                'id': 'ethereum',
+                'symbol': 'ETH',
+                'name': 'Ethereum',
+                'current_price': 5200 + (time.time() % 800),
+                'market_cap': 600000000000 + (time.time() % 100000000000),
+                'volume_24h': 25000000000 + (time.time() % 10000000000),
+                'price_change_24h': (time.time() % 5) - 2.5
+            }
         ]
         
-        # For now, assume all coins from top market cap have tradeable pairs
-        # In production, you could check specific exchange APIs
-        return True
+        self.log("Generated fallback data with basic indicators only")
+        return fallback_coins

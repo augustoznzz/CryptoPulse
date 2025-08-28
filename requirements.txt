@@ -1,8 +1,5 @@
-ccxt==4.4.98
-Flask==3.1.1
-numpy==2.3.2
-pandas==2.3.1
+# Dependências básicas para CryptoRocket
+# Apenas os 3 indicadores: price_change_24h, volume_24h, market_cap
+
 pycoingecko==3.2.0
 requests==2.32.4
-scikit-learn==1.7.1
-scipy==1.16.1

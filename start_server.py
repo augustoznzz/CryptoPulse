@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Script de Inicialização do CryptoRocket
-Permite escolher qual versão da aplicação usar
+Script de Inicialização do CryptoRocket - Versão Simplificada
+Aplicação funciona via Netlify Functions
 """
 
 import os
@@ -16,54 +16,75 @@ def print_banner():
     ║                    🚀 CryptoRocket                           ║
     ║                   Análise de Criptomoedas                    ║
     ║                                                              ║
-    ║     Analisando as Top 30 Criptomoedas por Market Cap         ║
+    ║     Analisando as 16 Criptomoedas Selecionadas               ║
+    ║     Indicadores: price_change_24h, volume_24h, market_cap    ║
     ╚══════════════════════════════════════════════════════════════╝
     """)
 
 def show_menu():
-    """Mostra o menu de opções"""
-    print("\n📊 Escolha a versão da aplicação:")
-    print("1. 🚀 Versão Rápida (Recomendada) - Cache + Resposta Rápida")
-    print("2. ⚡ Versão Completa - Análise em Tempo Real")
-    print("3. 🧪 Versão de Teste - Dados Simulados")
-    print("4. 📋 Comando Direto - Top 30 Criptomoedas")
-    print("5. ❌ Sair")
+    """Mostra o menu de opções simplificado"""
+    print("\n📊 Escolha uma opção:")
+    print("1. 🌐 Abrir interface web (index.html)")
+    print("2. 🔧 Abrir interface alternativa (crypto-analyzer.html)")
+    print("3. 📁 Abrir pasta do projeto")
+    print("4. ❌ Sair")
     
     while True:
         try:
-            choice = input("\n🎯 Escolha uma opção (1-5): ").strip()
-            if choice in ['1', '2', '3', '4', '5']:
+            choice = input("\n🎯 Escolha uma opção (1-4): ").strip()
+            if choice in ['1', '2', '3', '4']:
                 return choice
             else:
-                print("❌ Opção inválida. Digite 1, 2, 3, 4 ou 5.")
+                print("❌ Opção inválida. Digite 1, 2, 3 ou 4.")
         except KeyboardInterrupt:
             print("\n\n👋 Até logo!")
             sys.exit(0)
 
-def start_server(version):
-    """Inicia o servidor baseado na versão escolhida"""
-    if version == '1':
-        print("\n🚀 Iniciando versão rápida...")
-        print("📊 Cache ativo para resposta rápida")
-        print("🌐 Acesse: http://localhost:5000")
-        subprocess.run([sys.executable, "app_fast.py"])
+def execute_choice(choice):
+    """Executa a opção escolhida"""
+    if choice == '1':
+        print("\n🌐 Abrindo interface principal...")
+        print("📊 Aplicação funciona via Netlify Functions")
+        print("🚀 Abrindo index.html no navegador...")
         
-    elif version == '2':
-        print("\n⚡ Iniciando versão completa...")
-        print("📊 Análise em tempo real das top 30 criptomoedas")
-        print("⏱️  A primeira análise pode demorar alguns minutos...")
-        print("🌐 Acesse: http://localhost:5000")
-        subprocess.run([sys.executable, "app.py"])
+        # Tentar abrir no navegador padrão
+        try:
+            if sys.platform.startswith('win'):
+                os.startfile('index.html')
+            elif sys.platform.startswith('darwin'):
+                subprocess.run(['open', 'index.html'])
+            else:
+                subprocess.run(['xdg-open', 'index.html'])
+        except Exception as e:
+            print(f"⚠️  Erro ao abrir navegador: {e}")
+            print("📁 Abra manualmente o arquivo index.html")
+            
+    elif choice == '2':
+        print("\n🔧 Abrindo interface alternativa...")
+        print("📊 Interface crypto-analyzer.html")
         
-    elif version == '3':
-        print("\n🧪 Iniciando versão de teste...")
-        print("📊 Dados simulados para teste rápido")
-        print("🌐 Acesse: http://localhost:5000")
-        subprocess.run([sys.executable, "app_simple.py"])
-        
-    elif version == '4':
-        print("\n📋 Executando análise direta das top 30 criptomoedas...")
-        subprocess.run([sys.executable, "main.py", "--top30", "--verbose"])
+        try:
+            if sys.platform.startswith('win'):
+                os.startfile('crypto-analyzer.html')
+            elif sys.platform.startswith('darwin'):
+                subprocess.run(['open', 'crypto-analyzer.html'])
+            else:
+                subprocess.run(['xdg-open', 'crypto-analyzer.html'])
+        except Exception as e:
+            print(f"⚠️  Erro ao abrir navegador: {e}")
+            print("📁 Abra manualmente o arquivo crypto-analyzer.html")
+            
+    elif choice == '3':
+        print("\n📁 Abrindo pasta do projeto...")
+        try:
+            if sys.platform.startswith('win'):
+                os.startfile('.')
+            elif sys.platform.startswith('darwin'):
+                subprocess.run(['open', '.'])
+            else:
+                subprocess.run(['xdg-open', '.'])
+        except Exception as e:
+            print(f"⚠️  Erro ao abrir pasta: {e}")
 
 def main():
     """Função principal"""
@@ -72,19 +93,14 @@ def main():
     while True:
         choice = show_menu()
         
-        if choice == '5':
+        if choice == '4':
             print("\n👋 Até logo!")
             break
         else:
             try:
-                start_server(choice)
-            except KeyboardInterrupt:
-                print("\n\n⏹️  Servidor interrompido pelo usuário.")
-                break
+                execute_choice(choice)
             except Exception as e:
-                print(f"\n❌ Erro ao iniciar servidor: {str(e)}")
-                print("🔧 Verifique se todas as dependências estão instaladas:")
-                print("   pip install -r requirements.txt")
+                print(f"\n❌ Erro: {str(e)}")
             
             print("\n" + "="*60)
             input("Pressione Enter para continuar...")

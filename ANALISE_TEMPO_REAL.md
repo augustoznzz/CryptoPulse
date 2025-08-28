@@ -40,9 +40,9 @@ O sistema analisa exclusivamente as seguintes criptomoedas:
 ### 📈 Indicadores Técnicos Implementados
 
 #### **Osciladores**
-- **RSI (Relative Strength Index)** - Detecção de sobrecompra/sobrevenda
-- **MACD (Moving Average Convergence Divergence)** - Sinais de momentum
-- **Stochastic Oscillator** - Identificação de reversões
+- **price_change_24h** - Variação de preço em 24 horas
+- **volume_24h** - Volume de negociação em 24 horas
+- **market_cap** - Capitalização de mercado
 
 #### **Médias Móveis**
 - **SMA (Simple Moving Average)** - Tendências de longo prazo
@@ -50,27 +50,27 @@ O sistema analisa exclusivamente as seguintes criptomoedas:
 - **Golden Cross/Death Cross** - Sinais de reversão
 
 #### **Volatilidade**
-- **Bollinger Bands** - Medição de volatilidade e reversões
+- **Análise de tendência** - Baseada na variação de preço
 - **ATR (Average True Range)** - Cálculo de stop-loss dinâmico
 - **Standard Deviation** - Análise de risco
 
 #### **Volume**
 - **Volume Profile** - Análise de força do movimento
-- **OBV (On-Balance Volume)** - Confirmação de tendência
+- **Volume analysis** - Confirmação de tendência
 - **Volume Weighted Average Price** - Preço médio ponderado
 
 ### 🎯 Sinais de Trading
 
 #### **Sinais LONG (Compra)**
-- RSI < 30 (sobrevenda)
-- MACD cruzando acima da linha de sinal
+- Price change < -3% (sobrevenda)
+- Volume > 1B (alta atividade)
 - Preço acima das médias móveis
 - Volume acima da média
 - Suporte técnico identificado
 
 #### **Sinais SHORT (Venda)**
-- RSI > 70 (sobrecompra)
-- MACD cruzando abaixo da linha de sinal
+- Price change > +3% (sobrecompra)
+- Volume < 100M (baixa atividade)
 - Preço abaixo das médias móveis
 - Volume confirmando movimento
 - Resistência técnica identificada
@@ -91,8 +91,8 @@ crypto_data = {
         'volume': 2500000000,
         'market_cap': 850000000000,
         'indicators': {
-            'rsi': 35.2,
-            'macd': 0.8,
+            'price_change_24h': -2.5,
+'volume_24h': 1500000000,
             'sma_20': 44000,
             'ema_12': 44800
         }
@@ -102,18 +102,11 @@ crypto_data = {
 
 ### **2. Cálculo de Indicadores**
 ```python
-def calculate_rsi(prices, period=14):
-    """Calcula o RSI para um período específico"""
-    gains = [max(0, prices[i] - prices[i-1]) for i in range(1, len(prices))]
-    losses = [max(0, prices[i-1] - prices[i]) for i in range(1, len(prices))]
-    
-    avg_gain = sum(gains) / period
-    avg_loss = sum(losses) / period
-    
-    rs = avg_gain / avg_loss if avg_loss != 0 else 0
-    rsi = 100 - (100 / (1 + rs))
-    
-    return rsi
+def calculate_price_change(current_price, previous_price):
+    """Calcula a variação de preço em porcentagem"""
+    if previous_price == 0:
+        return 0
+    return ((current_price - previous_price) / previous_price) * 100
 ```
 
 ### **3. Geração de Sinais**
@@ -128,14 +121,14 @@ def generate_signal(crypto_data):
         'stop_loss': None
     }
     
-    # Análise RSI
-    if crypto_data['rsi'] < 30:
-        signal['reason'].append('RSI oversold')
+    # Análise de variação de preço
+    if crypto_data['price_change_24h'] < -3:
+        signal['reason'].append('Price oversold')
         signal['confidence'] += 25
     
-    # Análise MACD
-    if crypto_data['macd'] > 0:
-        signal['reason'].append('MACD positive')
+    # Análise de volume
+    if crypto_data['volume_24h'] > 1000000000:
+        signal['reason'].append('High volume')
         signal['confidence'] += 20
     
     # Análise de tendência
@@ -159,20 +152,20 @@ def generate_signal(crypto_data):
 ```
 🔍 ANÁLISE TÉCNICA COMPLETA - BTC/USDT
 
-📊 INDICADORES TÉCNICOS:
-├── RSI (14): 32.5 (Sobrevenda)
-├── MACD: 0.75 (Momentum positivo)
-├── SMA 20: $44,200
-├── EMA 12: $44,800
-├── Bollinger Bands: Preço próximo ao limite inferior
-└── Volume: 15% acima da média
+📊 INDICADORES BÁSICOS:
+├── Price Change 24h: -2.5% (Sobrevenda)
+├── Volume 24h: $1.5B (Alto volume)
+├── Market Cap: $850B (Estável)
+├── Current Price: $44,200
+├── 24h High: $45,800
+└── 24h Low: $43,500
 
 🎯 SINAL GERADO:
 ├── Tipo: LONG (Compra)
 ├── Confiança: 78%
 ├── Razões:
-│   ├── RSI em sobrevenda (< 30)
-│   ├── MACD com momentum positivo
+│   ├── Price change em sobrevenda (< -3%)
+│   ├── Volume alto (> $1B)
 │   ├── Preço testando suporte
 │   └── Volume confirmando movimento
 └── Potencial: +12.5%
@@ -253,7 +246,7 @@ def generate_signal(crypto_data):
 ## 🎯 **Próximos Passos**
 
 ### **Melhorias Planejadas**
-- [ ] **Mais indicadores técnicos**
+- [ ] **Indicadores técnicos avançados**
 - [ ] **Análise de correlação** entre criptomoedas
 - [ ] **Backtesting** de estratégias
 - [ ] **Alertas personalizados** por email/SMS

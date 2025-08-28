@@ -1,16 +1,9 @@
 [project]
-name = "repl-nix-workspace"
-version = "0.1.0"
-description = "Add your description here"
+name = "crypto-rocket"
+version = "1.0.0"
+description = "CryptoRocket - Análise de criptomoedas com indicadores básicos"
 requires-python = ">=3.11"
 dependencies = [
-    "ccxt>=4.4.98",
-    "flask>=3.1.1",
-    "numpy>=2.3.2",
-    "pandas>=2.3.1",
     "pycoingecko>=3.2.0",
     "requests>=2.32.4",
-    "scikit-learn>=1.7.1",
-    "scipy>=1.16.1",
-    "trafilatura>=2.0.0",
 ]

@@ -1,7 +1,7 @@
 {
-  "name": "crypto-pulse-static",
+  "name": "crypto-rocket",
   "version": "1.0.0",
-  "description": "Crypto Trading Analyzer - Versão Estática para Netlify",
+  "description": "CryptoRocket - Análise de criptomoedas com indicadores básicos (price_change_24h, volume_24h, market_cap)",
   "scripts": {
     "build": "echo 'Build completed - static site ready for Netlify'",
     "test": "echo 'No tests required for static site'",
@@ -13,9 +13,12 @@
     "analyzer",
     "static",
     "netlify",
-    "demo"
+    "basic-indicators",
+    "price-change",
+    "volume",
+    "market-cap"
   ],
-  "author": "CryptoRocket Team",
+  "author": "Augusto Zuanazzi",
   "license": "MIT",
   "repository": {
     "type": "git",
