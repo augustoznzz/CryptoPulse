@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Crypto Trading Analyzer - Análise em Tempo Real</title>
     <style>
         /* Dark Theme Crypto Trading Interface */
@@ -17,9 +17,21 @@
             background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%) !important;
             color: #e0e0e0;
             min-height: 100vh;
+            min-height: 100dvh; /* Dynamic viewport height for mobile */
             line-height: 1.6;
             position: relative;
             overflow-x: hidden;
+            /* Force full coverage */
+            height: 100%;
+            width: 100%;
+        }
+        
+        /* Ensure full screen coverage */
+        html {
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%) !important;
+            min-height: 100vh;
+            min-height: 100dvh;
+            height: 100%;
         }
         
         /* Particles Canvas */
@@ -29,8 +41,11 @@
             left: 0;
             width: 100%;
             height: 100%;
+            height: 100vh;
+            height: 100dvh;
             z-index: -1;
             pointer-events: none;
+            background: transparent;
         }
 
         .container {
@@ -38,9 +53,12 @@
             margin: 0 auto;
             padding: 2rem;
             min-height: 100vh;
+            min-height: 100dvh;
             display: flex;
             flex-direction: column;
             background: transparent;
+            position: relative;
+            z-index: 1;
         }
 
         /* Header */
@@ -305,11 +323,16 @@
             html, body {
                 background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%) !important;
                 overflow-x: hidden;
+                min-height: 100vh;
+                min-height: 100dvh;
+                height: 100%;
             }
             
             .container {
                 padding: 1rem;
                 background: transparent;
+                min-height: 100vh;
+                min-height: 100dvh;
             }
             
             header h1 {
@@ -351,11 +374,16 @@
         @media (max-width: 480px) {
             html, body {
                 background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%) !important;
+                min-height: 100vh;
+                min-height: 100dvh;
+                height: 100%;
             }
             
             .container {
                 padding: 0.5rem;
                 background: transparent;
+                min-height: 100vh;
+                min-height: 100dvh;
             }
             
             .trade-card {
@@ -401,6 +429,31 @@
         /* Ensure no white backgrounds */
         *[style*="background: white"], *[style*="background: #fff"], *[style*="background-color: white"], *[style*="background-color: #fff"] {
             background: rgba(255, 255, 255, 0.05) !important;
+        }
+        
+        /* Additional mobile fixes */
+        @supports (-webkit-touch-callout: none) {
+            /* iOS Safari specific */
+            html, body {
+                min-height: -webkit-fill-available;
+            }
+        }
+        
+        /* Force full coverage for mobile browsers */
+        @media (max-width: 768px) {
+            body::before {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                height: 100vh;
+                height: 100dvh;
+                background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+                z-index: -2;
+                pointer-events: none;
+            }
         }
     </style>
 </head>
@@ -459,8 +512,9 @@
             const errorSection = document.getElementById('error');
             const errorMessage = document.getElementById('errorMessage');
 
-            // Ensure dark background is maintained
+            // Enhanced dark background maintenance
             function ensureDarkBackground() {
+                // Force dark background on all viewport elements
                 document.documentElement.style.background = 'linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%)';
                 document.body.style.background = 'linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%)';
                 
@@ -469,10 +523,45 @@
                 containers.forEach(container => {
                     container.style.background = 'transparent';
                 });
+                
+                // Additional mobile-specific fixes
+                if (window.innerWidth <= 768) {
+                    // Force full height coverage
+                    document.documentElement.style.minHeight = '100vh';
+                    document.documentElement.style.minHeight = '100dvh';
+                    document.body.style.minHeight = '100vh';
+                    document.body.style.minHeight = '100dvh';
+                    
+                    // Ensure particles canvas covers full screen
+                    const particlesCanvas = document.getElementById('particles-canvas');
+                    if (particlesCanvas) {
+                        particlesCanvas.style.height = '100vh';
+                        particlesCanvas.style.height = '100dvh';
+                    }
+                }
             }
 
             // Call on load and after results display
             ensureDarkBackground();
+            
+            // Additional mobile viewport handling
+            function handleMobileViewport() {
+                if (window.innerWidth <= 768) {
+                    // Force full coverage
+                    document.documentElement.style.height = '100%';
+                    document.body.style.height = '100%';
+                    
+                    // Prevent any white space
+                    document.body.style.overflow = 'hidden';
+                    document.documentElement.style.overflow = 'hidden';
+                    
+                    // Re-enable after a moment
+                    setTimeout(() => {
+                        document.body.style.overflow = '';
+                        document.documentElement.style.overflow = '';
+                    }, 100);
+                }
+            }
 
             searchBtn.addEventListener('click', function() {
                 startSearch();
@@ -565,6 +654,7 @@
                     
                     // Ensure dark background after results are displayed
                     setTimeout(ensureDarkBackground, 100);
+                    setTimeout(handleMobileViewport, 100);
                 } else {
                     displayError('No trading opportunities found at the moment.');
                 }
@@ -619,6 +709,7 @@
                  
                  // Ensure dark background after error display
                  setTimeout(ensureDarkBackground, 100);
+                 setTimeout(handleMobileViewport, 100);
              }
              
              function displayRateLimitError(message) {
@@ -637,6 +728,7 @@
                  
                  // Ensure dark background after error display
                  setTimeout(ensureDarkBackground, 100);
+                 setTimeout(handleMobileViewport, 100);
              }
 
             // Add some visual feedback for button interactions
@@ -653,7 +745,17 @@
             });
             
             // Ensure dark background on window resize
-            window.addEventListener('resize', ensureDarkBackground);
+            window.addEventListener('resize', function() {
+                ensureDarkBackground();
+                handleMobileViewport();
+            });
+            
+            // Additional mobile-specific event listeners
+            if ('ontouchstart' in window) {
+                // Mobile device detected
+                document.addEventListener('touchstart', ensureDarkBackground);
+                document.addEventListener('touchend', ensureDarkBackground);
+            }
         });
 
         // Add a subtle parallax effect to the background

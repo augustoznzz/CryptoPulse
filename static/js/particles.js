@@ -47,6 +47,18 @@ class AdvancedParticlesSystem {
     if (this.canvas) {
       this.canvas.style.background = 'transparent';
     }
+    
+    // Force full height coverage for mobile
+    if (window.innerWidth <= 768) {
+      if (document.documentElement) {
+        document.documentElement.style.minHeight = '100vh';
+        document.documentElement.style.minHeight = '100dvh';
+      }
+      if (document.body) {
+        document.body.style.minHeight = '100vh';
+        document.body.style.minHeight = '100dvh';
+      }
+    }
   }
 
   setupEventListeners() {
@@ -98,6 +110,8 @@ class AdvancedParticlesSystem {
     this.canvas.height = this.canvasSize.h * this.dpr;
     this.canvas.style.width = `${this.canvasSize.w}px`;
     this.canvas.style.height = `${this.canvasSize.h}px`;
+    this.canvas.style.height = `${this.canvasSize.h}px`;
+    this.canvas.style.height = `${this.canvasSize.h}dvh`;
     this.canvas.style.background = 'transparent';
     this.ctx.scale(this.dpr, this.dpr);
 

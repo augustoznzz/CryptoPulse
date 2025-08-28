@@ -10,8 +10,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const errorSection = document.getElementById('error');
     const errorMessage = document.getElementById('errorMessage');
 
-    // Ensure dark background is maintained
+    // Enhanced dark background maintenance
     function ensureDarkBackground() {
+        // Force dark background on all viewport elements
         document.documentElement.style.background = 'linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%)';
         document.body.style.background = 'linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%)';
         
@@ -20,10 +21,45 @@ document.addEventListener('DOMContentLoaded', function() {
         containers.forEach(container => {
             container.style.background = 'transparent';
         });
+        
+        // Additional mobile-specific fixes
+        if (window.innerWidth <= 768) {
+            // Force full height coverage
+            document.documentElement.style.minHeight = '100vh';
+            document.documentElement.style.minHeight = '100dvh';
+            document.body.style.minHeight = '100vh';
+            document.body.style.minHeight = '100dvh';
+            
+            // Ensure particles canvas covers full screen
+            const particlesCanvas = document.getElementById('particles-canvas');
+            if (particlesCanvas) {
+                particlesCanvas.style.height = '100vh';
+                particlesCanvas.style.height = '100dvh';
+            }
+        }
     }
 
     // Call on load and after results display
     ensureDarkBackground();
+    
+    // Additional mobile viewport handling
+    function handleMobileViewport() {
+        if (window.innerWidth <= 768) {
+            // Force full coverage
+            document.documentElement.style.height = '100%';
+            document.body.style.height = '100%';
+            
+            // Prevent any white space
+            document.body.style.overflow = 'hidden';
+            document.documentElement.style.overflow = 'hidden';
+            
+            // Re-enable after a moment
+            setTimeout(() => {
+                document.body.style.overflow = '';
+                document.documentElement.style.overflow = '';
+            }, 100);
+        }
+    }
 
     searchBtn.addEventListener('click', function() {
         startSearch();
@@ -98,6 +134,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Ensure dark background after results are displayed
             setTimeout(ensureDarkBackground, 100);
+            setTimeout(handleMobileViewport, 100);
         } else {
             displayError('Nenhuma oportunidade de trading encontrada no momento.');
         }
@@ -152,10 +189,21 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Ensure dark background after error display
         setTimeout(ensureDarkBackground, 100);
+        setTimeout(handleMobileViewport, 100);
     }
     
     // Ensure dark background on window resize
-    window.addEventListener('resize', ensureDarkBackground);
+    window.addEventListener('resize', function() {
+        ensureDarkBackground();
+        handleMobileViewport();
+    });
+    
+    // Additional mobile-specific event listeners
+    if ('ontouchstart' in window) {
+        // Mobile device detected
+        document.addEventListener('touchstart', ensureDarkBackground);
+        document.addEventListener('touchend', ensureDarkBackground);
+    }
 });
 
 // Add a subtle parallax effect to the background

@@ -2,8 +2,8 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Teste Fundo Escuro Mobile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Teste Fundo Escuro Mobile - Corrigido</title>
     <style>
         /* Test CSS para verificar fundo escuro */
         * {
@@ -17,8 +17,20 @@
             background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%) !important;
             color: #e0e0e0;
             min-height: 100vh;
+            min-height: 100dvh; /* Dynamic viewport height for mobile */
             line-height: 1.6;
             overflow-x: hidden;
+            /* Force full coverage */
+            height: 100%;
+            width: 100%;
+        }
+        
+        /* Ensure full screen coverage */
+        html {
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%) !important;
+            min-height: 100vh;
+            min-height: 100dvh;
+            height: 100%;
         }
 
         .container {
@@ -26,9 +38,12 @@
             margin: 0 auto;
             padding: 2rem;
             min-height: 100vh;
+            min-height: 100dvh;
             display: flex;
             flex-direction: column;
             background: transparent;
+            position: relative;
+            z-index: 1;
         }
 
         .test-section {
@@ -63,11 +78,17 @@
         @media (max-width: 768px) {
             html, body {
                 background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%) !important;
+                overflow-x: hidden;
+                min-height: 100vh;
+                min-height: 100dvh;
+                height: 100%;
             }
             
             .container {
                 padding: 1rem;
                 background: transparent;
+                min-height: 100vh;
+                min-height: 100dvh;
             }
             
             .test-section {
@@ -78,11 +99,16 @@
         @media (max-width: 480px) {
             html, body {
                 background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%) !important;
+                min-height: 100vh;
+                min-height: 100dvh;
+                height: 100%;
             }
             
             .container {
                 padding: 0.5rem;
                 background: transparent;
+                min-height: 100vh;
+                min-height: 100dvh;
             }
         }
 
@@ -95,11 +121,36 @@
         *[style*="background: white"], *[style*="background: #fff"], *[style*="background-color: white"], *[style*="background-color: #fff"] {
             background: rgba(255, 255, 255, 0.05) !important;
         }
+        
+        /* Additional mobile fixes */
+        @supports (-webkit-touch-callout: none) {
+            /* iOS Safari specific */
+            html, body {
+                min-height: -webkit-fill-available;
+            }
+        }
+        
+        /* Force full coverage for mobile browsers */
+        @media (max-width: 768px) {
+            body::before {
+                content: '';
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                height: 100vh;
+                height: 100dvh;
+                background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+                z-index: -2;
+                pointer-events: none;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🧪 Teste Fundo Escuro Mobile</h1>
+        <h1>🧪 Teste Fundo Escuro Mobile - CORRIGIDO</h1>
         
         <div class="test-section">
             <h2>Teste de Fundo</h2>
@@ -118,6 +169,15 @@
                 <!-- Trades simulados aparecerão aqui -->
             </div>
         </div>
+        
+        <div class="test-section">
+            <h2>Status do Sistema</h2>
+            <p>Verificando se todas as correções estão funcionando.</p>
+            <button class="test-button" onclick="checkSystemStatus()">Verificar Sistema</button>
+            <div id="systemStatus" class="results" style="display: none;">
+                <!-- Status do sistema aparecerá aqui -->
+            </div>
+        </div>
     </div>
 
     <script>
@@ -130,6 +190,24 @@
                 container.style.background = container.classList.contains('results') ? 
                     'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.05)';
             });
+        }
+        
+        function handleMobileViewport() {
+            if (window.innerWidth <= 768) {
+                // Force full coverage
+                document.documentElement.style.height = '100%';
+                document.body.style.height = '100%';
+                
+                // Prevent any white space
+                document.body.style.overflow = 'hidden';
+                document.documentElement.style.overflow = 'hidden';
+                
+                // Re-enable after a moment
+                setTimeout(() => {
+                    document.body.style.overflow = '';
+                    document.documentElement.style.overflow = '';
+                }, 100);
+            }
         }
 
         function testBackground() {
@@ -146,9 +224,12 @@
                 <p><strong>Body background:</strong> ${bodyBg}</p>
                 <p><strong>Container background:</strong> ${containerBg}</p>
                 <p><strong>Status:</strong> ${htmlBg.includes('0c0c0c') ? '✅ Fundo escuro detectado' : '❌ Fundo não escuro'}</p>
+                <p><strong>Viewport:</strong> ${window.innerWidth}x${window.innerHeight}</p>
+                <p><strong>Device:</strong> ${window.innerWidth <= 768 ? 'Mobile' : 'Desktop'}</p>
             `;
             
             setTimeout(ensureDarkBackground, 100);
+            setTimeout(handleMobileViewport, 100);
         }
 
         function simulateTrades() {
@@ -174,11 +255,48 @@
             results.innerHTML = html;
             
             setTimeout(ensureDarkBackground, 100);
+            setTimeout(handleMobileViewport, 100);
+        }
+        
+        function checkSystemStatus() {
+            const status = document.getElementById('systemStatus');
+            status.style.display = 'block';
+            
+            const isMobile = window.innerWidth <= 768;
+            const hasTouch = 'ontouchstart' in window;
+            const viewportHeight = window.innerHeight;
+            const documentHeight = document.documentElement.scrollHeight;
+            
+            status.innerHTML = `
+                <h3>Status do Sistema:</h3>
+                <p><strong>Dispositivo:</strong> ${isMobile ? 'Mobile' : 'Desktop'}</p>
+                <p><strong>Touch:</strong> ${hasTouch ? 'Sim' : 'Não'}</p>
+                <p><strong>Viewport Height:</strong> ${viewportHeight}px</p>
+                <p><strong>Document Height:</strong> ${documentHeight}px</p>
+                <p><strong>CSS Support:</strong> ${CSS.supports('height', '100dvh') ? '100dvh suportado' : '100dvh não suportado'}</p>
+                <p><strong>Status Fundo:</strong> ${getComputedStyle(document.body).background.includes('0c0c0c') ? '✅ OK' : '❌ Problema'}</p>
+            `;
+            
+            setTimeout(ensureDarkBackground, 100);
+            setTimeout(handleMobileViewport, 100);
         }
 
         // Ensure dark background on load and resize
-        document.addEventListener('DOMContentLoaded', ensureDarkBackground);
-        window.addEventListener('resize', ensureDarkBackground);
+        document.addEventListener('DOMContentLoaded', function() {
+            ensureDarkBackground();
+            handleMobileViewport();
+        });
+        
+        window.addEventListener('resize', function() {
+            ensureDarkBackground();
+            handleMobileViewport();
+        });
+        
+        // Additional mobile-specific event listeners
+        if ('ontouchstart' in window) {
+            document.addEventListener('touchstart', ensureDarkBackground);
+            document.addEventListener('touchend', ensureDarkBackground);
+        }
     </script>
 </body>
 </html>
