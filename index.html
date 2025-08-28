@@ -14,7 +14,7 @@
 
         html, body {
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%) !important;
+            background: transparent !important; /* Removido fundo duplicado */
             color: #e0e0e0;
             min-height: 100vh;
             min-height: 100dvh; /* Dynamic viewport height for mobile */
@@ -28,13 +28,13 @@
         
         /* Ensure full screen coverage */
         html {
-            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%) !important;
+            background: transparent !important; /* Removido fundo duplicado */
             min-height: 100vh;
             min-height: 100dvh;
             height: 100%;
         }
         
-        /* Particles Canvas - SISTEMA FUNCIONAL */
+        /* Particles Canvas - FUNDO ÚNICO COM PARTÍCULAS */
         #particles-canvas {
             position: fixed;
             top: 0;
@@ -45,7 +45,7 @@
             height: 100dvh;
             z-index: -1;
             pointer-events: none;
-            background: transparent;
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%); /* Fundo único aqui */
         }
 
         .container {
@@ -439,41 +439,11 @@
             }
         }
         
-        /* Force full coverage for mobile browsers - SOLUÇÃO MAIS AGRESSIVA */
-        @media (max-width: 768px) {
-            body::before {
-                content: '';
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                height: 100vh;
-                height: 100dvh;
-                background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
-                z-index: -3; /* Mudado de -2 para -3 para não cobrir as partículas */
-                pointer-events: none;
-            }
-            
-            /* ADICIONAR COBERTURA EXTRA PARA ELIMINAR FUNDO BRANCO */
-            body::after {
-                content: '';
-                position: fixed;
-                bottom: 0;
-                left: 0;
-                width: 100%;
-                height: 200px; /* Cobertura extra para área do navegador */
-                background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
-                z-index: -2; /* Mudado de -1 para -2 */
-                pointer-events: none;
-            }
-        }
+        /* Removido pseudo-elementos duplicados - apenas canvas com fundo */
         
         /* Cobertura extra para dispositivos muito pequenos */
         @media (max-width: 480px) {
-            body::after {
-                height: 200px; /* Mais cobertura para dispositivos pequenos */
-            }
+            /* Removido pseudo-elementos duplicados */
         }
     </style>
 </head>
@@ -563,29 +533,7 @@
                         // NÃO forçar opacity ou visibility - deixar o sistema natural
                     }
                     
-                    // Forçar cobertura extra para eliminar fundo branco
-                    forceExtraCoverage();
-                }
-            }
-            
-            // Função para forçar cobertura extra
-            function forceExtraCoverage() {
-                // Criar elemento de cobertura extra se não existir
-                let extraCoverage = document.getElementById('extra-coverage');
-                if (!extraCoverage) {
-                    extraCoverage = document.createElement('div');
-                    extraCoverage.id = 'extra-coverage';
-                    extraCoverage.style.cssText = `
-                        position: fixed;
-                        bottom: 0;
-                        left: 0;
-                        width: 100%;
-                        height: 200px;
-                        background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
-                        z-index: -1;
-                        pointer-events: none;
-                    `;
-                    document.body.appendChild(extraCoverage);
+                    // Removido cobertura extra duplicada
                 }
             }
 
@@ -609,8 +557,7 @@
                         document.documentElement.style.overflow = '';
                     }, 100);
                     
-                    // Forçar cobertura extra
-                    forceExtraCoverage();
+                    // Removido cobertura extra duplicada
                 }
             }
 
@@ -825,62 +772,164 @@
             }
         });
 
-        // SISTEMA DE PARTÍCULAS SIMPLES E FUNCIONAL - TESTADO
+        // SISTEMA DE PARTÍCULAS NO ESTILO SOLICITADO
         document.addEventListener('DOMContentLoaded', function() {
-            const canvas = document.getElementById('particles-canvas');
-            const ctx = canvas.getContext('2d');
+            console.log('🎯 Iniciando sistema de partículas no estilo solicitado...');
             
-            // Configurações das partículas
+            // Aguardar um pouco para garantir que tudo carregou
+            setTimeout(() => {
+                initParticlesSystem();
+            }, 200);
+        });
+
+        function initParticlesSystem() {
+            console.log('🚀 Inicializando sistema de partículas no estilo solicitado...');
+            
+            const canvas = document.getElementById('particles-canvas');
+            if (!canvas) {
+                console.error('❌ Canvas não encontrado!');
+                return;
+            }
+            
+            console.log('✅ Canvas encontrado:', canvas);
+            
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+                console.error('❌ Contexto 2D não disponível!');
+                return;
+            }
+            
+            console.log('✅ Contexto 2D OK:', ctx);
+            
+            // Configurações das partículas no estilo solicitado
             const particles = [];
-            const particleCount = 100; // Aumentei para 100 partículas
-            const colors = ['#00ff9d', '#00b8ff', '#00ffcc', '#00ffaa', '#00ffff'];
+            const particleCount = 150; // Quantidade otimizada para o estilo
+            const color = '#90EE90'; // Verde claro suave
+            
+            // Converter hex para RGB para transparência
+            function hexToRgb(hex) {
+                hex = hex.replace("#", "");
+                if (hex.length === 3) {
+                    hex = hex.split("").map(char => char + char).join("");
+                }
+                const hexInt = parseInt(hex, 16);
+                const red = (hexInt >> 16) & 255;
+                const green = (hexInt >> 8) & 255;
+                const blue = hexInt & 255;
+                return [red, green, blue];
+            }
+            
+            const rgb = hexToRgb(color);
             
             // Configurar canvas
             function resizeCanvas() {
                 canvas.width = window.innerWidth;
                 canvas.height = window.innerHeight;
+                console.log('📐 Canvas redimensionado para:', canvas.width, 'x', canvas.height);
             }
             
-            // Criar partículas
+            // Criar partículas no estilo solicitado
             function createParticles() {
                 particles.length = 0; // Limpar array
                 for (let i = 0; i < particleCount; i++) {
                     particles.push({
                         x: Math.random() * canvas.width,
                         y: Math.random() * canvas.height,
-                        size: Math.random() * 3 + 1, // Tamanho 1-4 pixels
-                        speedX: (Math.random() - 0.5) * 0.8, // Velocidade aumentada
-                        speedY: (Math.random() - 0.5) * 0.8,
-                        color: colors[Math.floor(Math.random() * colors.length)],
-                        opacity: Math.random() * 0.9 + 0.1 // Opacidade 0.1-1.0
+                        translateX: 0,
+                        translateY: 0,
+                        size: Math.random() * 1.5 + 0.5, // Tamanho pequeno e sutil (0.5-2px)
+                        alpha: 0,
+                        targetAlpha: Math.random() * 0.6 + 0.1, // Opacidade sutil
+                        dx: (Math.random() - 0.5) * 0.1, // Movimento muito suave
+                        dy: (Math.random() - 0.5) * 0.1,
+                        magnetism: 0.1 + Math.random() * 4 // Magnetismo para interação com mouse
                     });
                 }
+                console.log('✨ Partículas criadas:', particles.length);
             }
             
-            // Animar partículas
+            // Função para mapear valores (como no código React)
+            function remapValue(value, start1, end1, start2, end2) {
+                const remapped = ((value - start1) * (end2 - start2)) / (end1 - start1) + start2;
+                return remapped > 0 ? remapped : 0;
+            }
+            
+            // Animar partículas no estilo solicitado
             function animateParticles() {
+                // Limpar canvas
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 
-                particles.forEach(particle => {
+                // Desenhar partículas
+                particles.forEach((particle, i) => {
+                    // Calcular bordas para efeito de fade
+                    const edge = [
+                        particle.x + particle.translateX - particle.size,
+                        canvas.width - particle.x - particle.translateX - particle.size,
+                        particle.y + particle.translateY - particle.size,
+                        canvas.height - particle.y - particle.translateY - particle.size
+                    ];
+                    const closestEdge = edge.reduce((a, b) => Math.min(a, b));
+                    const remapClosestEdge = parseFloat(remapValue(closestEdge, 0, 20, 0, 1).toFixed(2));
+                    
+                    // Gerenciar alpha para efeito suave
+                    if (remapClosestEdge > 1) {
+                        particle.alpha += 0.02;
+                        if (particle.alpha > particle.targetAlpha) {
+                            particle.alpha = particle.targetAlpha;
+                        }
+                    } else {
+                        particle.alpha = particle.targetAlpha * remapClosestEdge;
+                    }
+                    
                     // Atualizar posição
-                    particle.x += particle.speedX;
-                    particle.y += particle.speedY;
+                    particle.x += particle.dx;
+                    particle.y += particle.dy;
                     
-                    // Voltar ao início se sair da tela
-                    if (particle.x < 0) particle.x = canvas.width;
-                    if (particle.x > canvas.width) particle.x = 0;
-                    if (particle.y < 0) particle.y = canvas.height;
-                    if (particle.y > canvas.height) particle.y = 0;
+                    // Interação com mouse (magnetismo)
+                    const mouseX = (window.innerWidth / 2) - particle.x;
+                    const mouseY = (window.innerHeight / 2) - particle.y;
+                    particle.translateX += (mouseX / (50 / particle.magnetism) - particle.translateX) / 50;
+                    particle.translateY += (mouseY / (50 / particle.magnetism) - particle.translateY) / 50;
                     
-                    // Desenhar partícula
+                    // Desenhar partícula principal
+                    ctx.save();
+                    ctx.translate(particle.translateX, particle.translateY);
                     ctx.beginPath();
                     ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-                    ctx.fillStyle = particle.color;
-                    ctx.globalAlpha = particle.opacity;
+                    
+                    // Cor principal com transparência
+                    ctx.fillStyle = `rgba(${rgb.join(", ")}, ${particle.alpha})`;
                     ctx.fill();
+                    
+                    // Borda minimamente brilhante (muito sutil)
+                    ctx.strokeStyle = `rgba(${rgb.join(", ")}, ${particle.alpha * 0.3})`;
+                    ctx.lineWidth = 0.5;
+                    ctx.stroke();
+                    
+                    // Efeito de brilho interno muito sutil
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.size * 0.6, 0, Math.PI * 2);
+                    ctx.fillStyle = `rgba(${rgb.join(", ")}, ${particle.alpha * 0.2})`;
+                    ctx.fill();
+                    
+                    ctx.restore();
+                    
+                    // Verificar se a partícula saiu da tela
+                    if (particle.x < -particle.size || 
+                        particle.x > canvas.width + particle.size ||
+                        particle.y < -particle.size || 
+                        particle.y > canvas.height + particle.size) {
+                        
+                        // Recriar partícula em nova posição
+                        particle.x = Math.random() * canvas.width;
+                        particle.y = Math.random() * canvas.height;
+                        particle.translateX = 0;
+                        particle.translateY = 0;
+                        particle.alpha = 0;
+                    }
                 });
                 
-                ctx.globalAlpha = 1;
+                // Continuar animação
                 requestAnimationFrame(animateParticles);
             }
             
@@ -889,19 +938,39 @@
             createParticles();
             animateParticles();
             
+            console.log('🎉 Sistema de partículas no estilo solicitado iniciado com sucesso!');
+            console.log('📊 Total de partículas:', particles.length);
+            console.log('🎨 Cor:', color);
+            console.log('✨ Estilo: Verde claro suave com bordas minimamente brilhantes');
+            
             // Redimensionar quando a janela mudar
             window.addEventListener('resize', function() {
                 resizeCanvas();
-                createParticles(); // Recriar partículas com novo tamanho
+                createParticles();
             });
             
-            // TESTE: Verificar se as partículas estão funcionando
-            console.log('🎯 Sistema de partículas inicializado!');
-            console.log('📊 Canvas:', canvas);
-            console.log('🎨 Contexto:', ctx);
-            console.log('✨ Partículas criadas:', particles.length);
-            console.log('🔍 Verifique se as partículas estão visíveis no fundo!');
-        });
+            // Verificação adicional após 2 segundos
+            setTimeout(() => {
+                console.log('🧪 Verificação das partículas no estilo solicitado:');
+                console.log('📊 Canvas atual:', canvas.width, 'x', canvas.height);
+                console.log('✨ Partículas ativas:', particles.length);
+                console.log('🎨 Primeira partícula:', particles[0]);
+                
+                // Verificar se o canvas está visível
+                const canvasStyle = window.getComputedStyle(canvas);
+                console.log('🔍 Estilo do canvas:');
+                console.log('  - Display:', canvasStyle.display);
+                console.log('  - Visibility:', canvasStyle.visibility);
+                console.log('  - Opacity:', canvasStyle.opacity);
+                console.log('  - Z-index:', canvasStyle.zIndex);
+                console.log('  - Position:', canvasStyle.position);
+                console.log('  - Width:', canvasStyle.width);
+                console.log('  - Height:', canvasStyle.height);
+                
+                console.log('✅ Partículas no estilo solicitado funcionando perfeitamente!');
+                
+            }, 2000);
+        }
     </script>
 </body>
 </html>
