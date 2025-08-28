@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const errorSection = document.getElementById('error');
     const errorMessage = document.getElementById('errorMessage');
 
-    // Enhanced dark background maintenance
+    // Enhanced dark background maintenance - SOLUÇÃO MAIS AGRESSIVA
     function ensureDarkBackground() {
         // Force dark background on all viewport elements
         document.documentElement.style.background = 'linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%)';
@@ -30,12 +30,39 @@ document.addEventListener('DOMContentLoaded', function() {
             document.body.style.minHeight = '100vh';
             document.body.style.minHeight = '100dvh';
             
-            // Ensure particles canvas covers full screen
+            // Ensure particles canvas covers full screen and is visible
             const particlesCanvas = document.getElementById('particles-canvas');
             if (particlesCanvas) {
                 particlesCanvas.style.height = '100vh';
                 particlesCanvas.style.height = '100dvh';
+                particlesCanvas.style.opacity = '1';
+                particlesCanvas.style.visibility = 'visible';
+                particlesCanvas.style.zIndex = '-1';
             }
+            
+            // Forçar cobertura extra para eliminar fundo branco
+            forceExtraCoverage();
+        }
+    }
+    
+    // Função para forçar cobertura extra
+    function forceExtraCoverage() {
+        // Criar elemento de cobertura extra se não existir
+        let extraCoverage = document.getElementById('extra-coverage');
+        if (!extraCoverage) {
+            extraCoverage = document.createElement('div');
+            extraCoverage.id = 'extra-coverage';
+            extraCoverage.style.cssText = `
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 200px;
+                background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+                z-index: -1;
+                pointer-events: none;
+            `;
+            document.body.appendChild(extraCoverage);
         }
     }
 
@@ -58,6 +85,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.body.style.overflow = '';
                 document.documentElement.style.overflow = '';
             }, 100);
+            
+            // Forçar cobertura extra
+            forceExtraCoverage();
         }
     }
 

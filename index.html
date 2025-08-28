@@ -34,7 +34,7 @@
             height: 100%;
         }
         
-        /* Particles Canvas */
+        /* Particles Canvas - FORÇAR VISIBILIDADE */
         #particles-canvas {
             position: fixed;
             top: 0;
@@ -46,6 +46,9 @@
             z-index: -1;
             pointer-events: none;
             background: transparent;
+            /* Garantir que as partículas sejam visíveis */
+            opacity: 1 !important;
+            visibility: visible !important;
         }
 
         .container {
@@ -439,7 +442,7 @@
             }
         }
         
-        /* Force full coverage for mobile browsers */
+        /* Force full coverage for mobile browsers - SOLUÇÃO MAIS AGRESSIVA */
         @media (max-width: 768px) {
             body::before {
                 content: '';
@@ -454,10 +457,40 @@
                 z-index: -2;
                 pointer-events: none;
             }
+            
+            /* ADICIONAR COBERTURA EXTRA PARA ELIMINAR FUNDO BRANCO */
+            body::after {
+                content: '';
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 200px; /* Cobertura extra para área do navegador */
+                background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+                z-index: -1;
+                pointer-events: none;
+            }
+            
+            /* Forçar partículas visíveis */
+            #particles-canvas {
+                opacity: 1 !important;
+                visibility: visible !important;
+                z-index: -1 !important;
+            }
+        }
+        
+        /* Cobertura extra para dispositivos muito pequenos */
+        @media (max-width: 480px) {
+            body::after {
+                height: 200px; /* Mais cobertura para dispositivos pequenos */
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Canvas de Partículas - FORÇAR VISIBILIDADE -->
+    <canvas id="particles-canvas"></canvas>
+    
     <div class="container">
         <header>
             <h1>🚀 Crypto Trading Analyzer</h1>
@@ -512,7 +545,7 @@
             const errorSection = document.getElementById('error');
             const errorMessage = document.getElementById('errorMessage');
 
-            // Enhanced dark background maintenance
+            // Enhanced dark background maintenance - SOLUÇÃO MAIS AGRESSIVA
             function ensureDarkBackground() {
                 // Force dark background on all viewport elements
                 document.documentElement.style.background = 'linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%)';
@@ -532,12 +565,39 @@
                     document.body.style.minHeight = '100vh';
                     document.body.style.minHeight = '100dvh';
                     
-                    // Ensure particles canvas covers full screen
+                    // Ensure particles canvas covers full screen and is visible
                     const particlesCanvas = document.getElementById('particles-canvas');
                     if (particlesCanvas) {
                         particlesCanvas.style.height = '100vh';
                         particlesCanvas.style.height = '100dvh';
+                        particlesCanvas.style.opacity = '1';
+                        particlesCanvas.style.visibility = 'visible';
+                        particlesCanvas.style.zIndex = '-1';
                     }
+                    
+                    // Forçar cobertura extra para eliminar fundo branco
+                    forceExtraCoverage();
+                }
+            }
+            
+            // Função para forçar cobertura extra
+            function forceExtraCoverage() {
+                // Criar elemento de cobertura extra se não existir
+                let extraCoverage = document.getElementById('extra-coverage');
+                if (!extraCoverage) {
+                    extraCoverage = document.createElement('div');
+                    extraCoverage.id = 'extra-coverage';
+                    extraCoverage.style.cssText = `
+                        position: fixed;
+                        bottom: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 200px;
+                        background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+                        z-index: -1;
+                        pointer-events: none;
+                    `;
+                    document.body.appendChild(extraCoverage);
                 }
             }
 
@@ -560,6 +620,9 @@
                         document.body.style.overflow = '';
                         document.documentElement.style.overflow = '';
                     }, 100);
+                    
+                    // Forçar cobertura extra
+                    forceExtraCoverage();
                 }
             }
 

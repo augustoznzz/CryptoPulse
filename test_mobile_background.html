@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Teste Fundo Escuro Mobile - Corrigido</title>
+    <title>Teste Fundo Escuro Mobile - CORREÇÃO AGRESSIVA</title>
     <style>
         /* Test CSS para verificar fundo escuro */
         * {
@@ -31,6 +31,23 @@
             min-height: 100vh;
             min-height: 100dvh;
             height: 100%;
+        }
+        
+        /* Particles Canvas - FORÇAR VISIBILIDADE */
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            height: 100vh;
+            height: 100dvh;
+            z-index: -1;
+            pointer-events: none;
+            background: transparent;
+            /* Garantir que as partículas sejam visíveis */
+            opacity: 1 !important;
+            visibility: visible !important;
         }
 
         .container {
@@ -130,7 +147,7 @@
             }
         }
         
-        /* Force full coverage for mobile browsers */
+        /* Force full coverage for mobile browsers - SOLUÇÃO MAIS AGRESSIVA */
         @media (max-width: 768px) {
             body::before {
                 content: '';
@@ -145,12 +162,42 @@
                 z-index: -2;
                 pointer-events: none;
             }
+            
+            /* ADICIONAR COBERTURA EXTRA PARA ELIMINAR FUNDO BRANCO */
+            body::after {
+                content: '';
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 200px; /* Cobertura extra para área do navegador */
+                background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+                z-index: -1;
+                pointer-events: none;
+            }
+            
+            /* Forçar partículas visíveis */
+            #particles-canvas {
+                opacity: 1 !important;
+                visibility: visible !important;
+                z-index: -1 !important;
+            }
+        }
+        
+        /* Cobertura extra para dispositivos muito pequenos */
+        @media (max-width: 480px) {
+            body::after {
+                height: 200px; /* Mais cobertura para dispositivos pequenos */
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Canvas de Partículas - FORÇAR VISIBILIDADE -->
+    <canvas id="particles-canvas"></canvas>
+    
     <div class="container">
-        <h1>🧪 Teste Fundo Escuro Mobile - CORRIGIDO</h1>
+        <h1>🧪 Teste Fundo Escuro Mobile - CORREÇÃO AGRESSIVA</h1>
         
         <div class="test-section">
             <h2>Teste de Fundo</h2>
@@ -176,6 +223,15 @@
             <button class="test-button" onclick="checkSystemStatus()">Verificar Sistema</button>
             <div id="systemStatus" class="results" style="display: none;">
                 <!-- Status do sistema aparecerá aqui -->
+            </div>
+        </div>
+        
+        <div class="test-section">
+            <h2>Teste de Partículas</h2>
+            <p>Verificando se as partículas estão visíveis no fundo.</p>
+            <button class="test-button" onclick="testParticles()">Testar Partículas</button>
+            <div id="particlesTest" class="results" style="display: none;">
+                <!-- Teste de partículas aparecerá aqui -->
             </div>
         </div>
     </div>
@@ -207,6 +263,29 @@
                     document.body.style.overflow = '';
                     document.documentElement.style.overflow = '';
                 }, 100);
+                
+                // Forçar cobertura extra
+                forceExtraCoverage();
+            }
+        }
+        
+        function forceExtraCoverage() {
+            // Criar elemento de cobertura extra se não existir
+            let extraCoverage = document.getElementById('extra-coverage');
+            if (!extraCoverage) {
+                extraCoverage = document.createElement('div');
+                extraCoverage.id = 'extra-coverage';
+                extraCoverage.style.cssText = `
+                    position: fixed;
+                    bottom: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 200px;
+                    background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+                    z-index: -1;
+                    pointer-events: none;
+                `;
+                document.body.appendChild(extraCoverage);
             }
         }
 
@@ -280,6 +359,44 @@
             setTimeout(ensureDarkBackground, 100);
             setTimeout(handleMobileViewport, 100);
         }
+        
+        function testParticles() {
+            const results = document.getElementById('particlesTest');
+            results.style.display = 'block';
+            
+            const particlesCanvas = document.getElementById('particles-canvas');
+            const canvasStyle = particlesCanvas ? getComputedStyle(particlesCanvas) : null;
+            
+            let html = '<h3>Teste de Partículas:</h3>';
+            
+            if (particlesCanvas) {
+                html += `
+                    <p><strong>Canvas encontrado:</strong> ✅</p>
+                    <p><strong>Opacity:</strong> ${canvasStyle.opacity}</p>
+                    <p><strong>Visibility:</strong> ${canvasStyle.visibility}</p>
+                    <p><strong>Z-Index:</strong> ${canvasStyle.zIndex}</p>
+                    <p><strong>Display:</strong> ${canvasStyle.display}</p>
+                    <p><strong>Position:</strong> ${canvasStyle.position}</p>
+                    <p><strong>Width:</strong> ${canvasStyle.width}</p>
+                    <p><strong>Height:</strong> ${canvasStyle.height}</p>
+                `;
+                
+                // Forçar visibilidade
+                particlesCanvas.style.opacity = '1';
+                particlesCanvas.style.visibility = 'visible';
+                particlesCanvas.style.zIndex = '-1';
+                particlesCanvas.style.display = 'block';
+                
+                html += '<p style="color: #00ff9d; font-weight: 600;">✅ Partículas forçadas a serem visíveis!</p>';
+            } else {
+                html += '<p style="color: #ff5252; font-weight: 600;">❌ Canvas de partículas não encontrado!</p>';
+            }
+            
+            results.innerHTML = html;
+            
+            setTimeout(ensureDarkBackground, 100);
+            setTimeout(handleMobileViewport, 100);
+        }
 
         // Ensure dark background on load and resize
         document.addEventListener('DOMContentLoaded', function() {
@@ -298,5 +415,8 @@
             document.addEventListener('touchend', ensureDarkBackground);
         }
     </script>
+    
+    <!-- Particles System -->
+    <script src="static/js/particles.js"></script>
 </body>
 </html>
