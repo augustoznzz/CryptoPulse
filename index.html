@@ -34,7 +34,7 @@
             height: 100%;
         }
         
-        /* Particles Canvas - CORRIGIDO PARA FUNCIONAR */
+        /* Particles Canvas - SISTEMA FUNCIONAL */
         #particles-canvas {
             position: fixed;
             top: 0;
@@ -478,7 +478,7 @@
     </style>
 </head>
 <body>
-    <!-- Canvas de Partículas - CORRIGIDO -->
+    <!-- Canvas de Partículas - SISTEMA FUNCIONAL -->
     <canvas id="particles-canvas"></canvas>
     
     <div class="container">
@@ -824,9 +824,73 @@
                 document.getElementById('searchBtn').click();
             }
         });
+
+        // SISTEMA DE PARTÍCULAS SIMPLES E FUNCIONAL
+        document.addEventListener('DOMContentLoaded', function() {
+            const canvas = document.getElementById('particles-canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Configurações das partículas
+            const particles = [];
+            const particleCount = 80;
+            const colors = ['#00ff9d', '#00b8ff', '#00ffcc', '#00ffaa'];
+            
+            // Configurar canvas
+            function resizeCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+            }
+            
+            // Criar partículas
+            function createParticles() {
+                for (let i = 0; i < particleCount; i++) {
+                    particles.push({
+                        x: Math.random() * canvas.width,
+                        y: Math.random() * canvas.height,
+                        size: Math.random() * 2 + 1,
+                        speedX: (Math.random() - 0.5) * 0.5,
+                        speedY: (Math.random() - 0.5) * 0.5,
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        opacity: Math.random() * 0.8 + 0.2
+                    });
+                }
+            }
+            
+            // Animar partículas
+            function animateParticles() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                particles.forEach(particle => {
+                    // Atualizar posição
+                    particle.x += particle.speedX;
+                    particle.y += particle.speedY;
+                    
+                    // Voltar ao início se sair da tela
+                    if (particle.x < 0) particle.x = canvas.width;
+                    if (particle.x > canvas.width) particle.x = 0;
+                    if (particle.y < 0) particle.y = canvas.height;
+                    if (particle.y > canvas.height) particle.y = 0;
+                    
+                    // Desenhar partícula
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    ctx.fillStyle = particle.color;
+                    ctx.globalAlpha = particle.opacity;
+                    ctx.fill();
+                });
+                
+                ctx.globalAlpha = 1;
+                requestAnimationFrame(animateParticles);
+            }
+            
+            // Inicializar sistema
+            resizeCanvas();
+            createParticles();
+            animateParticles();
+            
+            // Redimensionar quando a janela mudar
+            window.addEventListener('resize', resizeCanvas);
+        });
     </script>
-    
-    <!-- Particles System -->
-    <script src="static/js/particles.js"></script>
 </body>
 </html>
