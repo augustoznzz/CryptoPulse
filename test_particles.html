@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Partículas - Crypto Trading Analyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
+            color: white;
+            font-family: Arial, sans-serif;
+            overflow: hidden;
+        }
+
+        #particles-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .test-info {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #00ff9d;
+            z-index: 1000;
+        }
+
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .success { background: rgba(0, 255, 0, 0.2); color: #00ff00; }
+        .error { background: rgba(255, 0, 0, 0.2); color: #ff0000; }
+        .info { background: rgba(0, 255, 255, 0.2); color: #00ffff; }
+    </style>
+</head>
+<body>
+    <canvas id="particles-canvas"></canvas>
+    
+    <div class="test-info">
+        <h2>🧪 Teste de Partículas</h2>
+        <div id="status" class="status info">Inicializando...</div>
+        <div id="particleCount" class="status info">Partículas: 0</div>
+        <div id="canvasInfo" class="status info">Canvas: Carregando...</div>
+        <button onclick="testParticles()" style="margin-top: 10px; padding: 10px; background: #00ff9d; color: black; border: none; border-radius: 5px; cursor: pointer;">🔄 Testar Novamente</button>
+    </div>
+
+    <script>
+        let particles = [];
+        let particleCount = 100;
+        let colors = ['#00ff9d', '#00b8ff', '#00ffcc', '#00ffaa', '#00ffff'];
+        let animationId = null;
+
+        function updateStatus(message, type = 'info') {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+
+        function updateParticleCount() {
+            const countElement = document.getElementById('particleCount');
+            countElement.textContent = `Partículas: ${particles.length}`;
+        }
+
+        function updateCanvasInfo() {
+            const canvas = document.getElementById('particles-canvas');
+            const infoElement = document.getElementById('canvasInfo');
+            if (canvas) {
+                infoElement.textContent = `Canvas: ${canvas.width}x${canvas.height}`;
+            }
+        }
+
+        function testParticles() {
+            updateStatus('🧪 Testando sistema de partículas...', 'info');
+            
+            const canvas = document.getElementById('particles-canvas');
+            if (!canvas) {
+                updateStatus('❌ Canvas não encontrado!', 'error');
+                return;
+            }
+
+            const ctx = canvas.getContext('2d');
+            if (!ctx) {
+                updateStatus('❌ Contexto 2D não disponível!', 'error');
+                return;
+            }
+
+            updateStatus('✅ Canvas e contexto OK!', 'success');
+            
+            // Configurar canvas
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            updateCanvasInfo();
+
+            // Criar partículas
+            particles = [];
+            for (let i = 0; i < particleCount; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    size: Math.random() * 3 + 1,
+                    speedX: (Math.random() - 0.5) * 0.8,
+                    speedY: (Math.random() - 0.5) * 0.8,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    opacity: Math.random() * 0.9 + 0.1
+                });
+            }
+
+            updateParticleCount();
+            updateStatus(`✅ ${particles.length} partículas criadas!`, 'success');
+
+            // Animar partículas
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                particles.forEach(particle => {
+                    // Atualizar posição
+                    particle.x += particle.speedX;
+                    particle.y += particle.speedY;
+                    
+                    // Voltar ao início se sair da tela
+                    if (particle.x < 0) particle.x = canvas.width;
+                    if (particle.x > canvas.width) particle.x = 0;
+                    if (particle.y < 0) particle.y = canvas.height;
+                    if (particle.y > canvas.height) particle.y = 0;
+                    
+                    // Desenhar partícula
+                    ctx.beginPath();
+                    ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    ctx.fillStyle = particle.color;
+                    ctx.globalAlpha = particle.opacity;
+                    ctx.fill();
+                });
+                
+                ctx.globalAlpha = 1;
+                animationId = requestAnimationFrame(animate);
+            }
+
+            // Parar animação anterior se existir
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+
+            // Iniciar nova animação
+            animate();
+            updateStatus('🎉 Partículas animadas e visíveis!', 'success');
+        }
+
+        // Inicializar quando a página carregar
+        window.addEventListener('load', function() {
+            updateStatus('🚀 Página carregada, iniciando teste...', 'info');
+            setTimeout(testParticles, 500);
+        });
+
+        // Redimensionar canvas quando a janela mudar
+        window.addEventListener('resize', function() {
+            const canvas = document.getElementById('particles-canvas');
+            if (canvas) {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                updateCanvasInfo();
+            }
+        });
+
+        // Logs para debug
+        console.log('🎯 Teste de partículas carregado!');
+        console.log('🔍 Verifique o console para mais informações');
+    </script>
+</body>
+</html>

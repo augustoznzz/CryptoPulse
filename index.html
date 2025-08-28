@@ -451,7 +451,7 @@
                 height: 100vh;
                 height: 100dvh;
                 background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
-                z-index: -2;
+                z-index: -3; /* Mudado de -2 para -3 para não cobrir as partículas */
                 pointer-events: none;
             }
             
@@ -464,7 +464,7 @@
                 width: 100%;
                 height: 200px; /* Cobertura extra para área do navegador */
                 background: linear-gradient(135deg, #0c0c0c 0%, #1a1a1a 100%);
-                z-index: -1;
+                z-index: -2; /* Mudado de -1 para -2 */
                 pointer-events: none;
             }
         }
@@ -825,15 +825,15 @@
             }
         });
 
-        // SISTEMA DE PARTÍCULAS SIMPLES E FUNCIONAL
+        // SISTEMA DE PARTÍCULAS SIMPLES E FUNCIONAL - TESTADO
         document.addEventListener('DOMContentLoaded', function() {
             const canvas = document.getElementById('particles-canvas');
             const ctx = canvas.getContext('2d');
             
             // Configurações das partículas
             const particles = [];
-            const particleCount = 80;
-            const colors = ['#00ff9d', '#00b8ff', '#00ffcc', '#00ffaa'];
+            const particleCount = 100; // Aumentei para 100 partículas
+            const colors = ['#00ff9d', '#00b8ff', '#00ffcc', '#00ffaa', '#00ffff'];
             
             // Configurar canvas
             function resizeCanvas() {
@@ -843,15 +843,16 @@
             
             // Criar partículas
             function createParticles() {
+                particles.length = 0; // Limpar array
                 for (let i = 0; i < particleCount; i++) {
                     particles.push({
                         x: Math.random() * canvas.width,
                         y: Math.random() * canvas.height,
-                        size: Math.random() * 2 + 1,
-                        speedX: (Math.random() - 0.5) * 0.5,
-                        speedY: (Math.random() - 0.5) * 0.5,
+                        size: Math.random() * 3 + 1, // Tamanho 1-4 pixels
+                        speedX: (Math.random() - 0.5) * 0.8, // Velocidade aumentada
+                        speedY: (Math.random() - 0.5) * 0.8,
                         color: colors[Math.floor(Math.random() * colors.length)],
-                        opacity: Math.random() * 0.8 + 0.2
+                        opacity: Math.random() * 0.9 + 0.1 // Opacidade 0.1-1.0
                     });
                 }
             }
@@ -889,7 +890,17 @@
             animateParticles();
             
             // Redimensionar quando a janela mudar
-            window.addEventListener('resize', resizeCanvas);
+            window.addEventListener('resize', function() {
+                resizeCanvas();
+                createParticles(); // Recriar partículas com novo tamanho
+            });
+            
+            // TESTE: Verificar se as partículas estão funcionando
+            console.log('🎯 Sistema de partículas inicializado!');
+            console.log('📊 Canvas:', canvas);
+            console.log('🎨 Contexto:', ctx);
+            console.log('✨ Partículas criadas:', particles.length);
+            console.log('🔍 Verifique se as partículas estão visíveis no fundo!');
         });
     </script>
 </body>
