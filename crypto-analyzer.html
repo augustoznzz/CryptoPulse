@@ -162,6 +162,13 @@
             position: relative;
             overflow: hidden;
         }
+        /* Mini chart for technical box */
+        .mini-chart { width: 100%; height: 150px; margin: 0.5rem 0 0.75rem 0; position: relative; }
+        .mini-chart svg { width: 100%; height: 100%; display: block; }
+        .chart-legend { display: flex; gap: 0.75rem; align-items: center; font-size: 0.8rem; color: #a0a0a0; margin-bottom: 0.25rem; }
+        .legend-item { display: inline-flex; align-items: center; gap: 0.35rem; cursor: pointer; user-select: none; }
+        .legend-swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+        .tooltip { position: absolute; background: rgba(0,0,0,0.85); color: #fff; padding: 4px 6px; font-size: 11px; border-radius: 4px; pointer-events: none; transform: translate(-50%, -120%); white-space: nowrap; z-index: 2; display: none; }
 
         .trade-card::before {
             content: '';
@@ -526,8 +533,10 @@
                 const signalTypeClass = result.type === 'LONG' ? 'signal-long' : 'signal-short';
                 const emoji = result.type === 'LONG' ? '🔼' : '🔽';
                 
-                const priceChangeClass = result.price_change_24h >= 0 ? 'positive' : 'negative';
-                const priceChangeSymbol = result.price_change_24h >= 0 ? '+' : '';
+                const refPrice = (typeof result.as_of_price === 'number') ? result.as_of_price : result.current_price;
+                const refChange = (typeof result.as_of_price_change_24h === 'number') ? result.as_of_price_change_24h : result.price_change_24h;
+                const priceChangeClass = refChange >= 0 ? 'positive' : 'negative';
+                const priceChangeSymbol = refChange >= 0 ? '+' : '';
                 
                 const confidencePercentage = Math.round(result.score * 100);
                 
@@ -538,9 +547,9 @@
                     </div>
                     
                     <div class="price-info">
-                        <span class="current-price">$${result.current_price.toFixed(4)}</span>
+                        <span class="current-price">$${refPrice.toFixed(4)} <span style="color:#a0a0a0;font-weight:400">(3 meses atrás)</span></span>
                         <span class="price-change ${priceChangeClass}">
-                            ${priceChangeSymbol}${result.price_change_24h.toFixed(2)}%
+                            ${priceChangeSymbol}${refChange.toFixed(2)}%
                         </span>
                     </div>
                     
@@ -555,10 +564,142 @@
                         </div>
                     </div>
                     
-                    <div class="trade-details">${result.signal}</div>
+                    <div class="trade-details">
+                        <div class="chart-legend">
+                            <span class="legend-item" data-toggle="price"><span class="legend-swatch" style="background:#00b8ff"></span>Preço</span>
+                            <span class="legend-item" data-toggle="sma"><span class="legend-swatch" style="background:#00ff9d"></span>SMA (3)</span>
+                            <span class="legend-item" data-toggle="rsi"><span class="legend-swatch" style="background:#ffcc00"></span>RSI (3)</span>
+                        </div>
+                        <div class="mini-chart" id="chart-${result.symbol}"></div>
+                        ${result.signal}
+                    </div>
                 `;
                 
+                if (result.historical && result.historical.months) {
+                    const container = card.querySelector(`#chart-${result.symbol}`);
+                    renderMiniChart(container, result.historical.months);
+                }
+
                 return card;
+            }
+
+            function renderMiniChart(container, months) {
+                const labels = months.map(m => m.label);
+                const prices = months.map(m => m.price);
+                const smas = months.map(m => m.sma);
+                const rsis = months.map(m => m.rsi);
+
+                const w = container.clientWidth || 320;
+                const h = container.clientHeight || 150;
+                const pad = { top: 6, right: 6, bottom: 16, left: 30 };
+                const priceAreaH = Math.floor(h * 0.65);
+                const rsiAreaH = h - priceAreaH - pad.bottom - pad.top - 8;
+
+                const priceVals = prices.filter(v => typeof v === 'number' && !isNaN(v));
+                const pMin = Math.min.apply(null, priceVals);
+                const pMax = Math.max.apply(null, priceVals);
+                const px = (i) => pad.left + (i * (w - pad.left - pad.right) / (prices.length - 1));
+                const py = (v) => pad.top + (priceAreaH) - ((v - pMin) / (pMax - pMin || 1)) * (priceAreaH - 10);
+                const rx = px;
+                const ry = (v) => pad.top + priceAreaH + 8 + (rsiAreaH) - ((v - 0) / 100) * (rsiAreaH - 8);
+
+                const svgNS = 'http://www.w3.org/2000/svg';
+                const svg = document.createElementNS(svgNS, 'svg');
+                svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+                svg.setAttribute('preserveAspectRatio', 'none');
+
+                const axis = document.createElementNS(svgNS, 'path');
+                axis.setAttribute('d', `M${pad.left} ${pad.top} V${pad.top + priceAreaH} M${pad.left} ${pad.top + priceAreaH + 8} V${h - pad.bottom}`);
+                axis.setAttribute('stroke', 'rgba(255,255,255,0.15)');
+                axis.setAttribute('fill', 'none');
+                svg.appendChild(axis);
+
+                function linePath(vals, x, y) {
+                    let d = '';
+                    vals.forEach((v, i) => {
+                        if (v == null || isNaN(v)) return;
+                        const cmd = (d === '') ? 'M' : 'L';
+                        d += `${cmd}${x(i)} ${y(v)} `;
+                    });
+                    return d.trim();
+                }
+
+                const pricePath = document.createElementNS(svgNS, 'path');
+                pricePath.setAttribute('d', linePath(prices, px, py));
+                pricePath.setAttribute('stroke', '#00b8ff');
+                pricePath.setAttribute('fill', 'none');
+                pricePath.setAttribute('stroke-width', '2');
+                pricePath.dataset.series = 'price';
+                svg.appendChild(pricePath);
+
+                const smaPath = document.createElementNS(svgNS, 'path');
+                smaPath.setAttribute('d', linePath(smas, px, py));
+                smaPath.setAttribute('stroke', '#00ff9d');
+                smaPath.setAttribute('fill', 'none');
+                smaPath.setAttribute('stroke-width', '1.5');
+                smaPath.dataset.series = 'sma';
+                svg.appendChild(smaPath);
+
+                const rsiPath = document.createElementNS(svgNS, 'path');
+                rsiPath.setAttribute('d', linePath(rsis, rx, ry));
+                rsiPath.setAttribute('stroke', '#ffcc00');
+                rsiPath.setAttribute('fill', 'none');
+                rsiPath.setAttribute('stroke-width', '1.5');
+                rsiPath.dataset.series = 'rsi';
+                svg.appendChild(rsiPath);
+
+                const hoverLine = document.createElementNS(svgNS, 'line');
+                hoverLine.setAttribute('stroke', 'rgba(255,255,255,0.4)');
+                hoverLine.setAttribute('y1', String(pad.top));
+                hoverLine.setAttribute('y2', String(h - pad.bottom));
+                hoverLine.style.display = 'none';
+                svg.appendChild(hoverLine);
+
+                const tooltip = document.createElement('div');
+                tooltip.className = 'tooltip';
+                container.appendChild(tooltip);
+
+                function showHover(i, clientX) {
+                    const x = px(i);
+                    hoverLine.setAttribute('x1', String(x));
+                    hoverLine.setAttribute('x2', String(x));
+                    hoverLine.style.display = 'block';
+                    const p = prices[i];
+                    const s = smas[i];
+                    const r = rsis[i];
+                    tooltip.innerHTML = `${labels[i]} · $${(p ?? 0).toFixed(2)}${s?` · SMA:${s.toFixed(2)}`:''}${r?` · RSI:${r.toFixed(1)}`:''}`;
+                    tooltip.style.left = clientX + 'px';
+                    tooltip.style.top = (container.getBoundingClientRect().top + 12 + window.scrollY) + 'px';
+                    tooltip.style.display = 'block';
+                }
+
+                function hideHover() {
+                    hoverLine.style.display = 'none';
+                    tooltip.style.display = 'none';
+                }
+
+                svg.addEventListener('mousemove', (e) => {
+                    const rect = svg.getBoundingClientRect();
+                    const relX = e.clientX - rect.left;
+                    const t = (relX - pad.left) / (w - pad.left - pad.right);
+                    let i = Math.round(t * (prices.length - 1));
+                    i = Math.max(0, Math.min(prices.length - 1, i));
+                    showHover(i, e.clientX);
+                });
+                svg.addEventListener('mouseleave', hideHover);
+
+                const legendItems = container.parentElement.querySelectorAll('.legend-item');
+                legendItems.forEach(item => {
+                    item.addEventListener('click', () => {
+                        const key = item.getAttribute('data-toggle');
+                        const el = key === 'price' ? pricePath : key === 'sma' ? smaPath : rsiPath;
+                        const visible = el.style.display !== 'none';
+                        el.style.display = visible ? 'none' : 'block';
+                        item.style.opacity = visible ? '0.5' : '1';
+                    });
+                });
+
+                container.appendChild(svg);
             }
 
             function displayError(message) {

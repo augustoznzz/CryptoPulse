@@ -1,16 +1,16 @@
-const https = require('https');
+﻿const https = require('https');
 
 // Sistema de rate limiting baseado em IP
 const rateLimitStore = new Map(); // IP -> { lastRequest: timestamp, count: number }
 
-// Lista específica de criptomoedas para análise
+// Lista especÃ­fica de criptomoedas para anÃ¡lise
 const TARGET_CRYPTOCURRENCIES = [
   'bitcoin', 'ethereum', 'ripple', 'tether', 'binancecoin', 
   'solana', 'usd-coin', 'dogecoin', 'tron', 'cardano', 
   'chainlink', 'sui', 'stellar', 'uniswap', 'polkadot', 'dai'
 ];
 
-// Função para obter IP real do usuário
+// FunÃ§Ã£o para obter IP real do usuÃ¡rio
 function getClientIP(event) {
   // Netlify Functions pode ter diferentes headers para IP
   const headers = event.headers || {};
@@ -22,17 +22,17 @@ function getClientIP(event) {
              headers['x-client-ip'] ||
              'unknown';
   
-  // Se x-forwarded-for contém múltiplos IPs, pegar o primeiro
+  // Se x-forwarded-for contÃ©m mÃºltiplos IPs, pegar o primeiro
   return ip.split(',')[0].trim();
 }
 
-// Função para verificar rate limit
+// FunÃ§Ã£o para verificar rate limit
 function checkRateLimit(ip) {
-  const now = Date.now(); // Usar timestamp do servidor, não do cliente
+  const now = Date.now(); // Usar timestamp do servidor, nÃ£o do cliente
   const oneHour = 60 * 60 * 1000; // 1 hora em milissegundos
   
   if (!rateLimitStore.has(ip)) {
-    // Primeira solicitação deste IP
+    // Primeira solicitaÃ§Ã£o deste IP
     rateLimitStore.set(ip, {
       lastRequest: now,
       count: 1
@@ -44,7 +44,7 @@ function checkRateLimit(ip) {
   const timeSinceLastRequest = now - record.lastRequest;
   
   if (timeSinceLastRequest < oneHour) {
-    // Ainda dentro do período de 1 hora
+    // Ainda dentro do perÃ­odo de 1 hora
     const remainingTime = Math.ceil((oneHour - timeSinceLastRequest) / 1000 / 60); // em minutos
     return { 
       allowed: false, 
@@ -61,7 +61,7 @@ function checkRateLimit(ip) {
   }
 }
 
-// Função para limpar IPs antigos (manutenção)
+// FunÃ§Ã£o para limpar IPs antigos (manutenÃ§Ã£o)
 function cleanupOldIPs() {
   const now = Date.now();
   const oneDay = 24 * 60 * 60 * 1000; // 1 dia
@@ -73,10 +73,10 @@ function cleanupOldIPs() {
   }
 }
 
-// Limpar IPs antigos a cada 100 solicitações
+// Limpar IPs antigos a cada 100 solicitaÃ§Ãµes
 let requestCount = 0;
 
-// Função principal da Netlify Function
+// FunÃ§Ã£o principal da Netlify Function
 exports.handler = async (event, context) => {
   // Habilitar CORS
   const headers = {
@@ -85,7 +85,7 @@ exports.handler = async (event, context) => {
     'Access-Control-Allow-Methods': 'GET, POST, OPTIONS'
   };
 
-  // Responder a requisições OPTIONS (preflight)
+  // Responder a requisiÃ§Ãµes OPTIONS (preflight)
   if (event.httpMethod === 'OPTIONS') {
     return {
       statusCode: 200,
@@ -97,13 +97,13 @@ exports.handler = async (event, context) => {
   try {
     // Obter IP do cliente
     const clientIP = getClientIP(event);
-    console.log(`🔍 Request from IP: ${clientIP}`);
+    console.log(`ðŸ” Request from IP: ${clientIP}`);
     
     // Verificar rate limit
     const rateLimitCheck = checkRateLimit(clientIP);
     
     if (!rateLimitCheck.allowed) {
-      console.log(`🚫 Rate limit exceeded for IP ${clientIP}: ${rateLimitCheck.message}`);
+      console.log(`ðŸš« Rate limit exceeded for IP ${clientIP}: ${rateLimitCheck.message}`);
       return {
         statusCode: 429, // Too Many Requests
         headers,
@@ -117,14 +117,14 @@ exports.handler = async (event, context) => {
       };
     }
     
-    // Incrementar contador de solicitações para limpeza
+    // Incrementar contador de solicitaÃ§Ãµes para limpeza
     requestCount++;
     if (requestCount % 100 === 0) {
       cleanupOldIPs();
-      console.log(`🧹 Cleaned up old IPs. Current store size: ${rateLimitStore.size}`);
+      console.log(`ðŸ§¹ Cleaned up old IPs. Current store size: ${rateLimitStore.size}`);
     }
     
-    console.log('✅ Rate limit check passed, starting cryptocurrency analysis...');
+    console.log('âœ… Rate limit check passed, starting cryptocurrency analysis...');
     
     let targetCoins;
     let source = 'API';
@@ -138,7 +138,7 @@ exports.handler = async (event, context) => {
         targetCoins = await getTargetCryptocurrencies();
         
         if (targetCoins && targetCoins.length > 0) {
-          console.log(`✅ Success! Cryptocurrencies obtained from API: ${targetCoins.length}`);
+          console.log(`âœ… Success! Cryptocurrencies obtained from API: ${targetCoins.length}`);
           console.log(`Sample real data - BTC price: $${targetCoins.find(c => c.symbol === 'BTC')?.current_price}`);
           source = 'Real-Time API';
           break; // Sucesso, sair do loop
@@ -147,14 +147,14 @@ exports.handler = async (event, context) => {
         }
       } catch (apiError) {
         retryCount++;
-        console.log(`❌ API attempt ${retryCount} failed:`, apiError.message);
+        console.log(`âŒ API attempt ${retryCount} failed:`, apiError.message);
         
         if (retryCount >= maxRetries) {
-          console.log('🚨 All API attempts failed, using fallback data');
+          console.log('ðŸš¨ All API attempts failed, using fallback data');
           targetCoins = getFallbackData();
           source = 'Fallback (API failed)';
         } else {
-          console.log(`⏳ Waiting 2 seconds before retry ${retryCount + 1}...`);
+          console.log(`â³ Waiting 2 seconds before retry ${retryCount + 1}...`);
           await new Promise(resolve => setTimeout(resolve, 2000)); // Esperar 2 segundos
         }
       }
@@ -164,11 +164,8 @@ exports.handler = async (event, context) => {
       throw new Error('No cryptocurrencies available for analysis');
     }
     
-    // Generate simple and fast analysis (based on available data)
+    // Generate simple and fast analysis
     const analysisResults = generateSimpleAnalysis(targetCoins);
-    
-    // Enrich top results with historical data snapshot (3 months ago) and 6-month mini-series (T-8..T-3)
-    const enriched = await enrichWithHistorical(analysisResults);
     console.log(`Analyses generated: ${analysisResults.length}`);
     
     return {
@@ -176,7 +173,7 @@ exports.handler = async (event, context) => {
       headers,
       body: JSON.stringify({
         success: true,
-        results: enriched,
+        results: analysisResults,
         total_analyzed: targetCoins.length,
         timestamp: new Date().toISOString().split('T')[0],
         message: `Technical analysis completed - Top 5 best opportunities selected (${source})`,
@@ -212,8 +209,8 @@ function getFallbackData() {
       name: 'Bitcoin',
       current_price: 95000 + Math.random() * 10000, // $95k - $105k (mais realista)
       market_cap: 1800000000000 + Math.random() * 200000000000, // $1.8T - $2.0T
-      price_change_24h: (Math.random() - 0.5) * 6000, // ±$3k variation
-      price_change_percentage_24h: (Math.random() - 0.5) * 6, // ±3% variation
+      price_change_24h: (Math.random() - 0.5) * 6000, // Â±$3k variation
+      price_change_percentage_24h: (Math.random() - 0.5) * 6, // Â±3% variation
       volume_24h: 35000000000 + Math.random() * 15000000000 // $35B - $50B
     },
     {
@@ -222,8 +219,8 @@ function getFallbackData() {
       name: 'Ethereum',
       current_price: 5200 + Math.random() * 800, // $5.2k - $6.0k (mais realista)
       market_cap: 600000000000 + Math.random() * 100000000000, // $600B - $700B
-      price_change_24h: (Math.random() - 0.5) * 300, // ±$150 variation
-      price_change_percentage_24h: (Math.random() - 0.5) * 5, // ±2.5% variation
+      price_change_24h: (Math.random() - 0.5) * 300, // Â±$150 variation
+      price_change_percentage_24h: (Math.random() - 0.5) * 5, // Â±2.5% variation
       volume_24h: 25000000000 + Math.random() * 10000000000 // $25B - $35B
     },
     {
@@ -232,8 +229,8 @@ function getFallbackData() {
       name: 'XRP',
       current_price: 0.95 + Math.random() * 0.3, // $0.95 - $1.25 (mais realista)
       market_cap: 50000000000 + Math.random() * 20000000000, // $50B - $70B
-      price_change_24h: (Math.random() - 0.5) * 0.15, // ±$0.075 variation
-      price_change_percentage_24h: (Math.random() - 0.5) * 4, // ±2% variation
+      price_change_24h: (Math.random() - 0.5) * 0.15, // Â±$0.075 variation
+      price_change_percentage_24h: (Math.random() - 0.5) * 4, // Â±2% variation
       volume_24h: 4000000000 + Math.random() * 2000000000 // $4B - $6B
     },
     {
@@ -242,8 +239,8 @@ function getFallbackData() {
       name: 'BNB',
       current_price: 650 + Math.random() * 100, // $650 - $750 (mais realista)
       market_cap: 100000000000 + Math.random() * 20000000000, // $100B - $120B
-      price_change_24h: (Math.random() - 0.5) * 50, // ±$25 variation
-      price_change_percentage_24h: (Math.random() - 0.5) * 4, // ±2% variation
+      price_change_24h: (Math.random() - 0.5) * 50, // Â±$25 variation
+      price_change_percentage_24h: (Math.random() - 0.5) * 4, // Â±2% variation
       volume_24h: 6000000000 + Math.random() * 3000000000 // $6B - $9B
     },
     {
@@ -252,8 +249,8 @@ function getFallbackData() {
       name: 'Solana',
       current_price: 200 + Math.random() * 40, // $200 - $240 (mais realista)
       market_cap: 80000000000 + Math.random() * 20000000000, // $80B - $100B
-      price_change_24h: (Math.random() - 0.5) * 20, // ±$10 variation
-      price_change_percentage_24h: (Math.random() - 0.5) * 6, // ±3% variation
+      price_change_24h: (Math.random() - 0.5) * 20, // Â±$10 variation
+      price_change_percentage_24h: (Math.random() - 0.5) * 6, // Â±3% variation
       volume_24h: 5000000000 + Math.random() * 2000000000 // $5B - $7B
     },
     {
@@ -262,8 +259,8 @@ function getFallbackData() {
       name: 'Cardano',
       current_price: 0.65 + Math.random() * 0.15, // $0.65 - $0.80 (mais realista)
       market_cap: 25000000000 + Math.random() * 10000000000, // $25B - $35B
-      price_change_24h: (Math.random() - 0.5) * 0.1, // ±$0.05 variation
-      price_change_percentage_24h: (Math.random() - 0.5) * 5, // ±2.5% variation
+      price_change_24h: (Math.random() - 0.5) * 0.1, // Â±$0.05 variation
+      price_change_percentage_24h: (Math.random() - 0.5) * 5, // Â±2.5% variation
       volume_24h: 2000000000 + Math.random() * 1000000000 // $2B - $3B
     },
     {
@@ -272,8 +269,8 @@ function getFallbackData() {
       name: 'Polkadot',
       current_price: 8.5 + Math.random() * 1.5, // $8.5 - $10.0 (mais realista)
       market_cap: 12000000000 + Math.random() * 5000000000, // $12B - $17B
-      price_change_24h: (Math.random() - 0.5) * 0.8, // ±$0.4 variation
-      price_change_percentage_24h: (Math.random() - 0.5) * 4, // ±2% variation
+      price_change_24h: (Math.random() - 0.5) * 0.8, // Â±$0.4 variation
+      price_change_percentage_24h: (Math.random() - 0.5) * 4, // Â±2% variation
       volume_24h: 1500000000 + Math.random() * 800000000 // $1.5B - $2.3B
     },
     {
@@ -282,25 +279,25 @@ function getFallbackData() {
       name: 'Chainlink',
       current_price: 18.5 + Math.random() * 3, // $18.5 - $21.5 (mais realista)
       market_cap: 11000000000 + Math.random() * 4000000000, // $11B - $15B
-      price_change_24h: (Math.random() - 0.5) * 1.5, // ±$0.75 variation
-      price_change_percentage_24h: (Math.random() - 0.5) * 5, // ±2.5% variation
+      price_change_24h: (Math.random() - 0.5) * 1.5, // Â±$0.75 variation
+      price_change_percentage_24h: (Math.random() - 0.5) * 5, // Â±2.5% variation
       volume_24h: 1200000000 + Math.random() * 600000000 // $1.2B - $1.8B
     }
   ];
   
-  console.log(`🔄 Fallback data generated: ${fallbackCoins.length} cryptocurrencies`);
-  console.log(`⚠️  Note: These are simulated values. Real-time data is preferred.`);
+  console.log(`ðŸ”„ Fallback data generated: ${fallbackCoins.length} cryptocurrencies`);
+  console.log(`âš ï¸  Note: These are simulated values. Real-time data is preferred.`);
   return fallbackCoins;
 }
 
-// Obter dados das criptomoedas específicas
+// Obter dados das criptomoedas especÃ­ficas
 function getTargetCryptocurrencies() {
   return new Promise((resolve, reject) => {
     // Primeiro tentar CoinGecko, se falhar, tentar CoinCap
     tryCoinGecko()
       .then(resolve)
       .catch(() => {
-        console.log('🔄 CoinGecko failed, trying CoinCap API...');
+        console.log('ðŸ”„ CoinGecko failed, trying CoinCap API...');
         return tryCoinCap();
       })
       .then(resolve)
@@ -314,7 +311,7 @@ function tryCoinGecko() {
     const coinIds = TARGET_CRYPTOCURRENCIES.join(',');
     const url = `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${coinIds}&order=market_cap_desc&sparkline=false&price_change_percentage=24h`;
     
-    console.log('🔍 Trying CoinGecko API...');
+    console.log('ðŸ” Trying CoinGecko API...');
     
     const req = https.get(url, (res) => {
       let data = '';
@@ -347,7 +344,7 @@ function tryCoinGecko() {
             volume_24h: coin.total_volume
           }));
           
-          console.log(`✅ CoinGecko success: ${result.length} cryptocurrencies`);
+          console.log(`âœ… CoinGecko success: ${result.length} cryptocurrencies`);
           resolve(result);
         } catch (parseError) {
           reject(new Error('CoinGecko parse error'));
@@ -366,11 +363,11 @@ function tryCoinGecko() {
 // Tentar API CoinCap (alternativa)
 function tryCoinCap() {
   return new Promise((resolve, reject) => {
-    // CoinCap usa IDs diferentes, mapear para os símbolos
+    // CoinCap usa IDs diferentes, mapear para os sÃ­mbolos
     const symbols = ['bitcoin', 'ethereum', 'ripple', 'binance-coin', 'solana', 'cardano', 'polkadot', 'chainlink'];
     const url = `https://api.coincap.io/v2/assets?ids=${symbols.join(',')}`;
     
-    console.log('🔍 Trying CoinCap API...');
+    console.log('ðŸ” Trying CoinCap API...');
     
     const req = https.get(url, (res) => {
       let data = '';
@@ -403,7 +400,7 @@ function tryCoinCap() {
             volume_24h: parseFloat(coin.volumeUsd24Hr)
           }));
           
-          console.log(`✅ CoinCap success: ${result.length} cryptocurrencies`);
+          console.log(`âœ… CoinCap success: ${result.length} cryptocurrencies`);
           resolve(result);
         } catch (parseError) {
           reject(new Error('CoinCap parse error'));
@@ -419,7 +416,7 @@ function tryCoinCap() {
   });
 }
 
-// Gerar análise simples e rápida
+// Gerar anÃ¡lise simples e rÃ¡pida
 function generateSimpleAnalysis(coins) {
   const results = [];
   
@@ -451,195 +448,6 @@ function generateSimpleAnalysis(coins) {
   return results
     .sort((a, b) => b.score - a.score)
     .slice(0, 5);
-}
-
-// Helper: add months to a Date safely (UTC)
-function addMonthsUTC(date, months) {
-  const d = new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
-  const year = d.getUTCFullYear();
-  const month = d.getUTCMonth();
-  const day = d.getUTCDate();
-  const targetMonthIndex = month + months;
-  const targetYear = year + Math.floor(targetMonthIndex / 12);
-  const targetMonth = ((targetMonthIndex % 12) + 12) % 12;
-  // Clamp day to end of month
-  const lastDay = new Date(Date.UTC(targetYear, targetMonth + 1, 0)).getUTCDate();
-  const targetDay = Math.min(day, lastDay);
-  return new Date(Date.UTC(targetYear, targetMonth, targetDay));
-}
-
-// Fetch historical daily prices for a coin (up to 365 days) and compute monthly closes for specific months
-async function fetchMonthlySeriesForCoinGecko(coinId) {
-  return new Promise((resolve, reject) => {
-    const url = `https://api.coingecko.com/api/v3/coins/${coinId}/market_chart?vs_currency=usd&days=365&interval=daily`;
-    const req = https.get(url, (res) => {
-      let data = '';
-      res.on('data', (chunk) => { data += chunk; });
-      res.on('end', () => {
-        try {
-          if (res.statusCode !== 200) return reject(new Error(`CoinGecko market_chart HTTP ${res.statusCode}`));
-          const json = JSON.parse(data);
-          if (!json.prices || !Array.isArray(json.prices)) return reject(new Error('market_chart malformed'));
-          resolve(json.prices); // [ [tsMs, price], ... ]
-        } catch (e) {
-          reject(new Error('market_chart parse error'));
-        }
-      });
-    });
-    req.on('error', () => reject(new Error('market_chart connection error')));
-    req.setTimeout(8000, () => { req.destroy(); reject(new Error('market_chart timeout')); });
-  });
-}
-
-// Compute SMA(N) on a numeric array; returns array with same length with nulls for not-enough prefix
-function computeSMA(values, period) {
-  const out = new Array(values.length).fill(null);
-  let sum = 0;
-  for (let i = 0; i < values.length; i++) {
-    sum += values[i];
-    if (i >= period) sum -= values[i - period];
-    if (i >= period - 1) out[i] = sum / period;
-  }
-  return out;
-}
-
-// Compute RSI on closes using period N (Wilder's smoothing simplified for small N)
-function computeRSI(closes, period) {
-  const rsi = new Array(closes.length).fill(null);
-  for (let i = period; i < closes.length; i++) {
-    let gains = 0, losses = 0;
-    for (let j = i - period + 1; j <= i; j++) {
-      const change = closes[j] - closes[j - 1];
-      if (change >= 0) gains += change; else losses -= change;
-    }
-    const avgGain = gains / period;
-    const avgLoss = losses / period;
-    if (avgLoss === 0) {
-      rsi[i] = 100;
-    } else {
-      const rs = avgGain / avgLoss;
-      rsi[i] = 100 - (100 / (1 + rs));
-    }
-  }
-  return rsi;
-}
-
-// Enrich top results with historical snapshot and 6-month mini-series
-async function enrichWithHistorical(results) {
-  // Work on a copy
-  const top = results.slice(0, 5);
-  const now = new Date();
-  const asOf = addMonthsUTC(now, -3); // 3 months ago
-  
-  // target months indices: T-8..T-3 inclusive (6 months)
-  const months = [];
-  for (let m = -8; m <= -3; m++) {
-    const d = addMonthsUTC(now, m);
-    months.push({ year: d.getUTCFullYear(), month: d.getUTCMonth() });
-  }
-
-  // Map symbol->id guess: we need coin.id; results come from tryCoinGecko or tryCoinCap mapping earlier
-  // We can't guarantee id on results, so try to infer from name/symbol by searching original TARGET_CRYPTOCURRENCIES match; fall back to lowercase name
-  // To minimize additional API calls, assume CoinGecko ids are lowercased names without spaces, except common ones already covered.
-
-  async function enrichOne(r) {
-    // Attempt to guess CoinGecko id
-    let idGuess = (r.name || r.symbol || '').toLowerCase();
-    // Common fixes
-    const map = {
-      'btc': 'bitcoin', 'bitcoin': 'bitcoin',
-      'eth': 'ethereum', 'ethereum': 'ethereum',
-      'xrp': 'ripple', 'ripple': 'ripple',
-      'bnb': 'binancecoin', 'binance coin': 'binancecoin', 'binancecoin': 'binancecoin',
-      'sol': 'solana', 'solana': 'solana',
-      'ada': 'cardano', 'cardano': 'cardano',
-      'dot': 'polkadot', 'polkadot': 'polkadot',
-      'link': 'chainlink', 'chainlink': 'chainlink',
-      'usdt': 'tether', 'tether': 'tether',
-      'usdc': 'usd-coin', 'usd-coin': 'usd-coin',
-      'doge': 'dogecoin', 'dogecoin': 'dogecoin',
-      'trx': 'tron', 'tron': 'tron',
-      'xlm': 'stellar', 'stellar': 'stellar',
-      'uni': 'uniswap', 'uniswap': 'uniswap',
-      'sui': 'sui',
-      'dai': 'dai'
-    };
-    const id = map[idGuess] || map[(r.symbol || '').toLowerCase()] || map[(r.name || '').toLowerCase()] || idGuess.replace(/\s+/g, '-');
-
-    try {
-      const daily = await fetchMonthlySeriesForCoinGecko(id);
-      // Build month->last price map
-      const monthKey = (d) => `${d.getUTCFullYear()}-${d.getUTCMonth()}`;
-      const monthClose = new Map();
-      for (const [ts, price] of daily) {
-        const d = new Date(ts);
-        const key = `${d.getUTCFullYear()}-${d.getUTCMonth()}`;
-        // Keep last one seen in month (since data is chronological)
-        monthClose.set(key, price);
-      }
-
-      const series = months.map(({ year, month }) => {
-        const key = `${year}-${month}`;
-        const d = new Date(Date.UTC(year, month, 1));
-        const price = monthClose.has(key) ? monthClose.get(key) : null;
-        return { dateISO: d.toISOString().split('T')[0], label: `${year}-${String(month + 1).padStart(2,'0')}`, price };
-      });
-
-      // Compute SMA(3) and RSI(3) over available prices
-      const closes = series.map(p => p.price ?? 0);
-      const sma3 = computeSMA(closes, 3);
-      const rsi3 = computeRSI(closes, 3);
-      for (let i = 0; i < series.length; i++) {
-        series[i].sma = sma3[i] !== null ? Number(sma3[i]) : null;
-        series[i].rsi = rsi3[i] !== null ? Number(rsi3[i]) : null;
-      }
-
-      // As-of price = last available in as-of month (T-3)
-      const asOfKey = `${asOf.getUTCFullYear()}-${asOf.getUTCMonth()}`;
-      const asOfPrice = monthClose.has(asOfKey) ? monthClose.get(asOfKey) : null;
-
-      // Approx 24h change at end of as-of month: take last two entries in that month
-      let asOfChangePct = 0;
-      try {
-        const inMonth = daily.filter(([ts]) => {
-          const d = new Date(ts);
-          return d.getUTCFullYear() === asOf.getUTCFullYear() && d.getUTCMonth() === asOf.getUTCMonth();
-        });
-        if (inMonth.length >= 2) {
-          const pPrev = inMonth[inMonth.length - 2][1];
-          const pLast = inMonth[inMonth.length - 1][1];
-          asOfChangePct = ((pLast - pPrev) / pPrev) * 100;
-        }
-      } catch (_) {}
-
-      return {
-        ...r,
-        as_of_date: asOf.toISOString().split('T')[0],
-        as_of_price: asOfPrice != null ? Number(asOfPrice) : r.current_price,
-        as_of_price_change_24h: Number(asOfChangePct),
-        historical: { months: series }
-      };
-    } catch (e) {
-      // On failure, return original result without historical
-      return {
-        ...r,
-        as_of_date: asOf.toISOString().split('T')[0],
-        as_of_price: r.current_price,
-        as_of_price_change_24h: 0,
-        historical: null,
-        historical_error: e.message
-      };
-    }
-  }
-
-  const out = [];
-  for (const r of top) {
-    // Sequential to be gentle with rate limits
-    // eslint-disable-next-line no-await-in-loop
-    const enhanced = await enrichOne(r);
-    out.push(enhanced);
-  }
-  return out;
 }
 
 // Analisar uma criptomoeda individual
@@ -701,37 +509,37 @@ function generateDescription(coin, score) {
   
   // Trend based on 24h variation
   if (coin.price_change_percentage_24h > 0) {
-    description += `• Trend: Bullish (+${coin.price_change_percentage_24h.toFixed(2)}% 24h)\n`;
+    description += `â€¢ Trend: Bullish (+${coin.price_change_percentage_24h.toFixed(2)}% 24h)\n`;
   } else {
-    description += `• Trend: Bearish (${coin.price_change_percentage_24h.toFixed(2)}% 24h)\n`;
+    description += `â€¢ Trend: Bearish (${coin.price_change_percentage_24h.toFixed(2)}% 24h)\n`;
   }
   
   // Current price - format without decimals and with thousand separators
   const formattedPrice = Math.round(coin.current_price).toLocaleString('en-US');
-  description += `• Current price: $${formattedPrice}\n`;
+  description += `â€¢ Current price: $${formattedPrice}\n`;
   
   // Volume - format with appropriate units and thousand separators
   if (coin.volume_24h > 1000000000) {
     const volumeB = (coin.volume_24h / 1000000000).toFixed(1);
-    description += `• Volume: Very High ($${volumeB}B)\n`;
+    description += `â€¢ Volume: Very High ($${volumeB}B)\n`;
   } else if (coin.volume_24h > 100000000) {
     const volumeM = (coin.volume_24h / 1000000).toFixed(1);
-    description += `• Volume: High ($${volumeM}M)\n`;
+    description += `â€¢ Volume: High ($${volumeM}M)\n`;
   } else {
     const volumeM = (coin.volume_24h / 1000000).toFixed(1);
-    description += `• Volume: Medium ($${volumeM}M)\n`;
+    description += `â€¢ Volume: Medium ($${volumeM}M)\n`;
   }
   
   // Market cap - format with appropriate units
   if (coin.market_cap > 1000000000000) {
     const marketCapT = (coin.market_cap / 1000000000000).toFixed(1);
-    description += `• Market Cap: High ($${marketCapT}T)\n`;
+    description += `â€¢ Market Cap: High ($${marketCapT}T)\n`;
   } else if (coin.market_cap > 10000000000) {
     const marketCapB = (coin.market_cap / 1000000000).toFixed(1);
-    description += `• Market Cap: High ($${marketCapB}B)\n`;
+    description += `â€¢ Market Cap: High ($${marketCapB}B)\n`;
   } else {
     const marketCapB = (coin.market_cap / 1000000000).toFixed(1);
-    description += `• Market Cap: Medium ($${marketCapB}B)\n`;
+    description += `â€¢ Market Cap: Medium ($${marketCapB}B)\n`;
   }
   
   description += `\nStrategy: ${score > 0.6 ? 'Buy' : 'Sell'} with target +${Math.round(score * 20 + 5)}%`;
@@ -739,3 +547,4 @@ function generateDescription(coin, score) {
   
   return description;
 }
+
